@@ -2,6 +2,8 @@
 
 ## A public-safe implementation walkthrough
 
+**[Open the rendered case study →](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full markdown edition →](PUBLIC-CASE-STUDY.md)**
+
 This repository describes how I direct AI-assisted development of a complex
 systems-research project without publishing private strategy, credentials,
 financial data, collaborator information, or live operational details.
@@ -38,10 +40,12 @@ they were not treated as an independent authority.
 
 ### Start here
 
-1. [Implementation walkthrough](docs/IMPLEMENTATION-WALKTHROUGH.md)
-2. [Validation and risk gates](docs/VALIDATION-AND-RISK-GATES.md)
-3. [Workflow diagram](docs/WORKFLOW-DIAGRAM.md)
-4. [Attribution and limitations](docs/ATTRIBUTION-AND-LIMITATIONS.md)
+1. [Rendered public case study](https://heyitschien.github.io/autonomous-lab-case-study/)
+2. [Full public case-study markdown](PUBLIC-CASE-STUDY.md)
+3. [Implementation walkthrough](docs/IMPLEMENTATION-WALKTHROUGH.md)
+4. [Validation and risk gates](docs/VALIDATION-AND-RISK-GATES.md)
+5. [Workflow diagram](docs/WORKFLOW-DIAGRAM.md)
+6. [Attribution and limitations](docs/ATTRIBUTION-AND-LIMITATIONS.md)
 
 ## Scope and safety
 

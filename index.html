@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Autonomous Lab — engineering case study (public edition). Process, architecture, failures, and what is proven vs. not, as of Phase 5. Not financial advice.">
+<meta name="robots" content="index,follow">
+<title>Autonomous Lab Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-sunk: #f0f2f5;
+    --ink: #191e25;
+    --ink-soft: #3d4650;
+    --muted: #6a7480;
+    --rule: #e3e6eb;
+    --rule-strong: #cfd4dc;
+    --accent: #12726b;
+    --accent-quiet: #e4efee;
+    --ok: #3f7f56;
+    --ok-bg: #eaf3ec;
+    --warn: #9a6b1c;
+    --warn-bg: #f6efe1;
+    --no: #a6473d;
+    --no-bg: #f6e9e7;
+    --mono-bg: #eef1f4;
+    --shadow: 0 1px 2px rgba(20, 28, 38, .04), 0 8px 24px -12px rgba(20, 28, 38, .12);
+
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --pad-x: clamp(1.25rem, 5vw, 4rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1216;
+      --surface: #151b21;
+      --surface-sunk: #10161b;
+      --ink: #e4e8ec;
+      --ink-soft: #aeb8c2;
+      --muted: #7c8894;
+      --rule: #262e37;
+      --rule-strong: #333d48;
+      --accent: #4fb3aa;
+      --accent-quiet: #14211f;
+      --ok: #6fb98a;
+      --ok-bg: #16241c;
+      --warn: #d0a05a;
+      --warn-bg: #2a2113;
+      --no: #d98177;
+      --no-bg: #2c1a17;
+      --mono-bg: #1c242c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .55);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0e1216;
+    --surface: #151b21;
+    --surface-sunk: #10161b;
+    --ink: #e4e8ec;
+    --ink-soft: #aeb8c2;
+    --muted: #7c8894;
+    --rule: #262e37;
+    --rule-strong: #333d48;
+    --accent: #4fb3aa;
+    --accent-quiet: #14211f;
+    --ok: #6fb98a;
+    --ok-bg: #16241c;
+    --warn: #d0a05a;
+    --warn-bg: #2a2113;
+    --no: #d98177;
+    --no-bg: #2c1a17;
+    --mono-bg: #1c242c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .55);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: calc(var(--measure) + var(--pad-x) * 2);
+    margin: 0 auto;
+    padding: 0 var(--pad-x) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead {
+    padding: clamp(3rem, 9vw, 6rem) 0 2.25rem;
+    border-bottom: 1px solid var(--rule);
+    animation: rise .6s cubic-bezier(.2, .7, .2, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) { .masthead { animation: none; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.1rem;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 6vw, 3.35rem);
+    line-height: 1.08;
+    letter-spacing: -.012em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+
+  .thesis {
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.6vw, 1.4rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0 0 2rem;
+  }
+  .thesis em { font-style: italic; color: var(--ink); }
+
+  .status-rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem .5rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    letter-spacing: .01em;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .3rem .6rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    color: var(--ink-soft);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .chip::before {
+    content: "";
+    width: 6px; height: 6px;
+    background: var(--accent);
+    display: block;
+  }
+  .chip.flag::before { background: var(--warn); }
+
+  /* ---- section rhythm ---- */
+  section { padding-top: 3.25rem; }
+  section > h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+    line-height: 1.2;
+    letter-spacing: -.008em;
+    text-wrap: balance;
+    margin: 0 0 .35rem;
+  }
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    letter-spacing: .1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  section > h2 + .lede { margin-top: .75rem; }
+  .lede { color: var(--ink-soft); }
+
+  p { margin: 0 0 1.1rem; max-width: var(--measure); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 1px; }
+
+  code, .mono { font-family: var(--font-mono); font-size: .86em; }
+  p code, li code, td code {
+    background: var(--mono-bg);
+    padding: .08em .38em;
+    border-radius: 2px;
+    color: var(--ink);
+  }
+
+  strong { font-weight: 600; color: var(--ink); }
+
+  ul.clean { list-style: none; margin: 0 0 1.2rem; padding: 0; max-width: var(--measure); }
+  ul.clean li {
+    position: relative;
+    padding-left: 1.4rem;
+    margin-bottom: .7rem;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: .62em;
+    width: 7px; height: 7px;
+    border: 1.5px solid var(--accent);
+  }
+
+  /* ---- callout ---- */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 1.15rem 1.35rem;
+    margin: 0 0 1.4rem;
+    box-shadow: var(--shadow);
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.warn { border-left-color: var(--warn); }
+
+  .tldr {
+    font-family: var(--font-display);
+    font-size: 1.12rem;
+    line-height: 1.6;
+  }
+
+  /* ---- contrast grid ---- */
+  .contrast {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow);
+  }
+  .contrast > div { background: var(--surface); padding: 1.1rem 1.2rem; }
+  .contrast h3 {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin: 0 0 .8rem;
+  }
+  .contrast .yes h3 { color: var(--ok); }
+  .contrast .no h3 { color: var(--no); }
+  .contrast ul { margin: 0; padding-left: 1.1rem; }
+  .contrast li { margin-bottom: .5rem; font-size: .95rem; color: var(--ink-soft); }
+  @media (max-width: 620px) { .contrast { grid-template-columns: 1fr; } }
+
+  /* ---- tables ---- */
+  .table-scroll { overflow-x: auto; margin: 1.4rem 0; border: 1px solid var(--rule); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; background: var(--surface); }
+  th, td { text-align: left; padding: .68rem .85rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface-sunk);
+    border-bottom: 1px solid var(--rule-strong);
+    position: sticky; top: 0;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td .mono { color: var(--ink-soft); font-size: .82rem; }
+  .num-col { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* status marks in matrix */
+  .m { font-family: var(--font-mono); font-weight: 500; font-size: .8rem; display: inline-block; min-width: 1.1rem; }
+  .m-y { color: var(--ok); }
+  .m-p { color: var(--warn); }
+  .m-n { color: var(--no); }
+  .m-x { color: var(--muted); }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .03em;
+    padding: .12rem .5rem;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .pill.done { color: var(--ok); background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .pill.wip { color: var(--warn); background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+  .pill.todo { color: var(--muted); background: var(--surface-sunk); border-color: var(--rule-strong); }
+
+  /* ---- timeline ---- */
+  .timeline { margin: 1.6rem 0; border-left: 2px solid var(--rule-strong); padding-left: 1.4rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .tl-item { position: relative; }
+  .tl-item::before {
+    content: "";
+    position: absolute;
+    left: calc(-1.4rem - 6px);
+    top: .4em;
+    width: 10px; height: 10px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+  .tl-item.muted::before { border-color: var(--rule-strong); }
+  .tl-date { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .tl-item.muted .tl-date { color: var(--muted); }
+  .tl-item h4 { margin: .25rem 0 .35rem; font-size: 1.02rem; font-weight: 600; }
+  .tl-item p { margin: 0; font-size: .93rem; color: var(--ink-soft); }
+
+  /* ---- architecture diagram ---- */
+  .diagram {
+    margin: 1.6rem 0;
+    padding: 1.5rem;
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  .diagram-inner { min-width: 460px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 0 1rem; align-items: start; }
+  .spine { display: flex; flex-direction: column; gap: .5rem; }
+  .node {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    padding: .55rem .7rem;
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+  .node b { display: block; font-weight: 600; font-size: .84rem; }
+  .node .tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em; color: var(--muted); }
+  .node.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  .node.wip-node { box-shadow: inset 3px 0 0 var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--rule-strong)); }
+  .spine .arrow { text-align: center; color: var(--muted); font-family: var(--font-mono); font-size: .8rem; line-height: 1; }
+  .col-mid { display: flex; align-items: center; align-self: stretch; }
+  .boundary {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--no);
+    padding: 0 .3rem;
+    border-left: 2px dashed color-mix(in srgb, var(--no) 55%, transparent);
+    height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .llm-col { display: flex; flex-direction: column; gap: .6rem; padding-top: 2.2rem; }
+  .llm-col .node.llm { border-style: dashed; }
+  .diagram-caption { font-size: .82rem; color: var(--muted); margin: .9rem 0 0; max-width: none; }
+  @media (max-width: 640px) {
+    .diagram-inner { grid-template-columns: 1fr; }
+    .col-mid { display: none; }
+    .llm-col { padding-top: 1rem; border-top: 1px dashed color-mix(in srgb, var(--no) 45%, transparent); margin-top: 1rem; }
+  }
+
+  /* ---- failures ---- */
+  .failure { border-top: 1px solid var(--rule); padding: 1.5rem 0; }
+  .failure:first-of-type { border-top: none; }
+  .failure .fx-head { display: flex; gap: .8rem; align-items: baseline; margin-bottom: .6rem; }
+  .fx-idx { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent); line-height: 1; }
+  .failure h3 { margin: 0; font-size: 1.08rem; font-weight: 600; line-height: 1.35; }
+  .failure .meta { font-family: var(--font-mono); font-size: .74rem; color: var(--muted); margin-top: .2rem; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; font-size: .9rem; margin-top: .7rem; }
+  .kv dt { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding-top: .15rem; }
+  .kv dd { margin: 0; color: var(--ink-soft); }
+  @media (max-width: 560px) { .kv { grid-template-columns: 1fr; gap: .1rem; } .kv dd { margin-bottom: .6rem; } }
+
+  /* ---- checklist ---- */
+  .checklist { list-style: none; margin: 1.2rem 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+  .checklist li { display: flex; gap: .7rem; align-items: flex-start; font-size: .95rem; color: var(--ink-soft); }
+  .checklist li::before {
+    content: "";
+    flex: none;
+    width: 1rem; height: 1rem;
+    margin-top: .18rem;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 2px;
+  }
+
+  .footnote {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: .86rem;
+    color: var(--muted);
+  }
+  .footnote p { max-width: none; }
+  .footnote .mono { font-size: .78rem; }
+
+  hr.soft { border: none; border-top: 1px solid var(--rule); margin: 2.5rem 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Engineering case study · public edition</p>
+    <h1>Directing an AI-assisted engineering institution</h1>
+    <p class="thesis">A human sets the architecture, the evidence bar, and the approval gates. Multiple AI agents build and review. The subject is a <em>safety-critical trading research system</em> where deterministic code holds all authority and language models are only allowed to explain and propose.</p>
+    <div class="status-rail">
+      <span class="chip">Build phase 5 of 10</span>
+      <span class="chip">Reconciled 2026-08-26</span>
+      <span class="chip">Source repo private</span>
+      <span class="chip flag">Public case study</span>
+    </div>
+  </header>
+
+  <section id="tldr">
+    <span class="section-num">01 — In 30 seconds</span>
+    <h2>What this is</h2>
+    <div class="callout">
+      <p class="tldr">I direct an AI-assisted engineering process and use AI agents as builders and independent reviewers to develop a trading research system for Micro E-mini S&amp;P 500 futures. It is deliberately built so <strong>deterministic code owns every risk and execution decision</strong>, while language models only explain, classify, and propose.</p>
+    </div>
+    <p>It is <strong>not</strong> a profitable bot, it does <strong>not</strong> place live trades, and no trading edge has been proven. The artifact worth showing is the <strong>laboratory around the strategy</strong>: source provenance, a deterministic market-state layer, an audit trail held to safety-critical standards, an evidence-judging discipline, and a multi-agent workflow with a human promotion gate.</p>
+    <p style="font-size:.9rem;color:var(--muted)">This is not financial advice and not an offer of any product.</p>
+  </section>
+
+  <section id="claims">
+    <span class="section-num">02 — Honesty box</span>
+    <h2>What it demonstrates, and what it doesn&rsquo;t</h2>
+    <div class="contrast">
+      <div class="yes">
+        <h3>Demonstrates</h3>
+        <ul>
+          <li>A shipped decision-support product evolving into a safety-first research system</li>
+          <li>An architecture that separates evidence &rarr; intelligence &rarr; authority &rarr; evaluation &rarr; promotion</li>
+          <li>A repeatable multi-agent workflow with independent review and exact-commit evidence</li>
+          <li>Real failures converted into regression tests and stronger validators</li>
+          <li>Transferable lessons about directing AI-assisted engineering</li>
+        </ul>
+      </div>
+      <div class="no">
+        <h3>Does not claim</h3>
+        <ul>
+          <li>That the system trades profitably</li>
+          <li>That any strategy has positive expectancy</li>
+          <li>That live brokerage execution exists</li>
+          <li>That AI is making trade decisions</li>
+          <li>That the project is finished &mdash; it is mid-build</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="problem">
+    <span class="section-num">03 — The problem</span>
+    <h2>Orientation under time pressure</h2>
+    <p>Day trading MES demands a fast read of a moving picture: <em>Is the market live? What did the regular session do versus the overnight session? Is this data stale? What structure is forming?</em> Getting it wrong is expensive, and getting it from a chart alone is slow.</p>
+    <p>The first product answered that for a <strong>human</strong>. The current work asks a harder question: can a <strong>deterministic system</strong> be trusted to identify a bounded setup, evaluate risk, and eventually act in simulation &mdash; with language models contributing intelligence but never authority?</p>
+  </section>
+
+  <section id="evolution">
+    <span class="section-num">04 — Evolution</span>
+    <h2>From a coach for a human to a lab for a machine</h2>
+    <div class="timeline">
+      <div class="tl-item muted">
+        <div class="tl-date">2026-05 · shipped, then frozen</div>
+        <h4>MES Co-Pilot (&ldquo;Coach&rdquo;)</h4>
+        <p>Pine chart sensors &rarr; webhook &rarr; merged market state &rarr; Chrome extension &rarr; on-demand LLM coach. Decision support only. Proved the conversation layer and the &ldquo;deterministic facts first&rdquo; principle. Frozen 2026-05-23 with its own reflection package.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026-07 · the split</div>
+        <h4>A separate personal autonomous lab</h4>
+        <p>The ceiling was not prompt quality &mdash; it was data quality, freshness, and provenance. Keep the commercial Coach isolated; start a new lab. <strong>ADR-004:</strong> language models never enter the execution chain. <strong>ADR-005:</strong> Sierra Chart becomes the single autonomous data source.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026-08 · phases 2&ndash;4 complete</div>
+        <h4>The deterministic spine came online</h4>
+        <p>Sierra events &rarr; canonical Evidence Packet (Phase 2). Deterministic MarketState / AuctionState v1 (Phase 3). PaperIntent + append-only audit + paper broker (Phase 4). Each independently reviewed, tests green, CI green, merged.</p>
+      </div>
+      <div class="tl-item wip">
+        <div class="tl-date">now · in progress</div>
+        <h4>Phase 5 &mdash; the deterministic RiskKernel</h4>
+        <p>Config-driven, fail-closed, zero language-model interpretation. Phases 6&ndash;10 (strategy, planner, sim sniper, replay validation, live-readiness review) are not started.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <span class="section-num">05 — Architecture</span>
+    <h2>A deterministic spine; models beside it, never inside it</h2>
+    <p class="lede">Every irreversible decision belongs to deterministic code. The language-model layer can read facts and propose labels; it is never on the wait path for risk or execution.</p>
+    <div class="diagram">
+      <div class="diagram-inner">
+        <div class="spine">
+          <div class="node on"><b>Sierra Chart</b><span class="tag">sole data source · ADR-005</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node on"><b>ACSIL exporter</b><span class="tag">C++ study · 1s telemetry</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node on"><b>SourceEvent &rarr; Evidence Packet</b><span class="tag">Phase 2 · complete</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node on"><b>MarketState / AuctionState</b><span class="tag">Phase 3 · complete</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node"><b>StrategyCandidate</b><span class="tag">Phase 6 · not started</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node wip-node"><b>RiskKernel</b><span class="tag">Phase 5 · in progress · fail-closed</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node"><b>ExecutionPlanner &rarr; Ambush</b><span class="tag">Phase 7 · not started</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node"><b>ACSIL sniper</b><span class="tag">Phase 8 · simulation only</span></div>
+          <div class="arrow">&darr;</div>
+          <div class="node on"><b>Append-only audit log</b><span class="tag">Phase 4 · complete</span></div>
+        </div>
+        <div class="col-mid"><div class="boundary">No authority across this line</div></div>
+        <div class="llm-col">
+          <div class="node llm"><b>Commercial Coach</b><span class="tag">isolated product · frozen</span></div>
+          <div class="node llm"><b>Shadow reviewer</b><span class="tag">designed, not built · ADR-004</span></div>
+          <p class="tag" style="margin:.2rem 0 0">Reads frozen pre-outcome evidence. Labels are graded against outcomes <em>later</em>. Never an execution input.</p>
+        </div>
+      </div>
+      <p class="diagram-caption">Load-bearing rules, all enforced in canonical specs today: the LLM is not in the execution path; RiskKernel does zero model interpretation and is fail-closed; paper/sim before live; the Coach and the lab share deterministic facts but never authority.</p>
+    </div>
+  </section>
+
+  <section id="operating-model">
+    <span class="section-num">06 — Operating model</span>
+    <h2>How it is built</h2>
+    <p class="lede">The differentiator is not the trading idea. It is the discipline of the process that produces it.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Role</th><th>Who</th><th>Authority</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operator</strong></td><td>Human (project owner)</td><td>Sets intent and priorities; approves manual validation, merges, and any irreversible step. Only role that can promote work to &ldquo;done&rdquo;.</td></tr>
+          <tr><td><strong>Builder agent</strong></td><td>AI, in-IDE</td><td>Implements code, docs, tests; opens PRs; reports with exact commit SHAs. May not self-approve an important merge.</td></tr>
+          <tr><td><strong>Independent review agent</strong></td><td>AI, separate context</td><td>Audits each PR against the issue&rsquo;s acceptance criteria using live repo state &mdash; CI, diffs, review threads. Does not trust the builder&rsquo;s summary.</td></tr>
+          <tr><td><strong>Documentation agent</strong></td><td>AI</td><td>Maintains institutional memory and this case study. No runtime authority.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Rules that make the review real:</p>
+    <ul class="clean">
+      <li><strong>Exact-HEAD truth.</strong> Every handoff carries the full 40-character commit SHA. If <code>HEAD</code> moves, the prior verdict expires and the review is redone.</li>
+      <li><strong>Green is not done.</strong> Status is tracked in six distinct states &mdash; <span class="mono">documented</span>, <span class="mono">implemented</span>, <span class="mono">automated-tests-green</span>, <span class="mono">CI-green</span>, <span class="mono">operator-verified</span>, <span class="mono">complete</span> &mdash; never collapsed into one word.</li>
+      <li><strong>A review comment is not proof of a defect.</strong> The reviewer confirms every concern against the code as it exists at that commit.</li>
+      <li><strong>Commit-before-reveal evaluation.</strong> A hypothesis, its dataset, and its scoring are committed before out-of-sample data is revealed; holdout exposure is logged in an append-only ledger. No look-ahead, no exam re-use.</li>
+      <li><strong>The judge is part of the system.</strong> Evidence-judging scripts get their own adversarial tests, because a passing check can still certify the wrong claim.</li>
+    </ul>
+  </section>
+
+  <section id="failures">
+    <span class="section-num">07 — Failures that improved the system</span>
+    <h2>Four times it was wrong, and what changed</h2>
+    <p class="lede">A clean story that hid these would be less useful. Each changed a test, a gate, or an architecture rule.</p>
+
+    <div class="failure">
+      <div class="fx-head">
+        <span class="fx-idx">1</span>
+        <div>
+          <h3>An external API meant something other than what the code assumed</h3>
+          <div class="meta">incident SIR-DEF-001 · external-API semantic mismatch</div>
+        </div>
+      </div>
+      <p>The Sierra call for &ldquo;trading day date&rdquo; returns a date <em>value</em> (days-since-epoch style integer), not a <code>YYYYMMDD</code> integer. The exporter treated it as <code>YYYYMMDD</code> and rejected every telemetry post as an invalid trading day. Fail-closed, so nothing corrupt got through &mdash; but the operator gate was blocked.</p>
+      <dl class="kv">
+        <dt>Fix</dt><dd>PR #115 (merged 2026-07-23; fix commit <code>21e5692</code>)</dd>
+        <dt>Proof</dt><dd>72-assertion regression suite over date-value vectors; original operator replay gate re-run and passed after rebuild</dd>
+        <dt>Rule added</dt><dd>any external value involving date, time, units, lifecycle, identifiers, or status codes must be validated against headers, docs, a fixture, and where it matters a live probe. Compilation proves availability, not meaning.</dd>
+      </dl>
+    </div>
+
+    <div class="failure">
+      <div class="fx-head">
+        <span class="fx-idx">2</span>
+        <div>
+          <h3>A validator passed on a weak proxy</h3>
+          <div class="meta">incident SIR-134-001 · capture policy too loose</div>
+        </div>
+      </div>
+      <p>A capture step recorded three &ldquo;market advancing&rdquo; samples that all carried the <strong>same bar-start timestamp</strong> as the paused baseline &mdash; the replay clock had not moved. The validator correctly rejected it, which exposed that the capture policy itself was too permissive.</p>
+      <dl class="kv">
+        <dt>Fix</dt><dd>PR #142 (merged 2026-08-03; fix commit <code>2680236</code>). Playing-state writes now require a strictly-later chart time; same-bar heartbeats return <code>waiting_chart_time_advance</code> instead of consuming a capture slot.</dd>
+        <dt>Lesson</dt><dd>&ldquo;the check passed&rdquo; is not the same as &ldquo;the check proved the claim.&rdquo; This became cross-cutting doctrine.</dd>
+      </dl>
+    </div>
+
+    <div class="failure">
+      <div class="fx-head">
+        <span class="fx-idx">3</span>
+        <div>
+          <h3>The evidence judge itself needed hardening</h3>
+          <div class="meta">Phase 3 operator validation · 2026-08-08 &rarr; 2026-08-24</div>
+        </div>
+      </div>
+      <p>A sequence of independent reviews feeding PR #151 repeatedly found that a passing operator script could still certify the wrong thing: a &ldquo;paused&rdquo; proof that a fast replay could satisfy while still moving; a &ldquo;first accepted packet&rdquo; proxy weaker than the next packet; semantic-attestation files that could pass an existence check while being empty.</p>
+      <dl class="kv">
+        <dt>Consequence</dt><dd>an <strong>exact-claim doctrine</strong> &mdash; the judge must bind each assertion to the specific artifact (chart time, bar indices, SHA-256) it claims to prove; a paused-first machine invariant; transition-window / race analysis added to the pre-flight checklist; immutable evidence and chronology requirements.</dd>
+        <dt>Lesson</dt><dd>in a safety-critical system, the test of the tester can matter as much as the test of the product.</dd>
+      </dl>
+    </div>
+
+    <div class="failure">
+      <div class="fx-head">
+        <span class="fx-idx">4</span>
+        <div>
+          <h3>&ldquo;Executed&rdquo; is not &ldquo;passed&rdquo; &mdash; caught in review this month</h3>
+          <div class="meta">issue #179 / PR #182 · in progress</div>
+        </div>
+      </div>
+      <p>While building the model-agnostic review tooling, the independent review agent blocked the PR: the new evidence gate recorded that a validation command had <em>run</em>, but a run that <strong>exited non-zero</strong> could still satisfy &ldquo;review context complete&rdquo; and allow a <code>COMPLETE</code> status.</p>
+      <dl class="kv">
+        <dt>Status</dt><dd>open, being fixed on the same issue before any dependent work starts.</dd>
+        <dt>Why it&rsquo;s here</dt><dd>it shows the review process catching a subtle evidence-integrity gap in real time. That is the process working, not failing.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="proven">
+    <span class="section-num">08 — Proven vs. not</span>
+    <h2>Where things actually stand</h2>
+    <p class="lede">As of 2026-08-26. Legend: <span class="m m-y">Y</span> yes &nbsp; <span class="m m-p">~</span> partial &nbsp; <span class="m m-n">N</span> no &nbsp; <span class="m m-x">&middot;</span> not applicable.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>doc</th><th>impl</th><th>tests</th><th>CI</th><th>operator</th><th>complete</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Sierra telemetry exporter (historical replay)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td></tr>
+          <tr><td>Sierra event &rarr; Evidence Packet (Phase 2)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-y">Y</span></td></tr>
+          <tr><td>Deterministic MarketState / AuctionState v1 (Phase 3)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-y">Y</span></td></tr>
+          <tr><td>PaperIntent + append-only audit + paper broker (Phase 4)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-p">~</span></td></tr>
+          <tr><td>LLM audit-correlation fields reserved (nullable, no client)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-x">&middot;</span></td><td><span class="m m-y">Y</span></td></tr>
+          <tr><td>Deterministic RiskKernel (Phase 5)</td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-p">~</span></td><td><span class="m m-p">~</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
+          <tr><td>StrategyCandidate / trend-pullback (Phase 6)</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
+          <tr><td>Execution planner, sim sniper, replay validation (Phase 7&ndash;9)</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
+          <tr><td>Shadow language-model reviewer</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
+          <tr><td><strong>Positive trading expectancy</strong></td><td colspan="6" style="color:var(--no)">Not attempted &mdash; explicitly out of scope until Phase 9.</td></tr>
+          <tr><td><strong>Live brokerage execution</strong></td><td colspan="6" style="color:var(--no)">Prohibited until a signed Phase 10 review that does not yet exist.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.86rem;color:var(--muted)"><span class="m m-p">~</span> operator = specific gates within the phase were run by the human; the whole phase has no single sign-off.</p>
+  </section>
+
+  <section id="stack">
+    <span class="section-num">09 — Stack</span>
+    <h2>Tools</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+        <tbody>
+          <tr><td>Market-data sensor</td><td>Sierra Chart + custom ACSIL (C++) telemetry study</td></tr>
+          <tr><td>Contracts / validation</td><td>Node.js, Zod fail-closed schemas</td></tr>
+          <tr><td>Deterministic brain</td><td>Node.js &mdash; SourceEvent, Evidence Packet, MarketState, AuctionState</td></tr>
+          <tr><td>Audit / paper layer</td><td>Node.js, append-only event log with semantic idempotency and durable-write recovery</td></tr>
+          <tr><td>Earlier product (Coach, frozen)</td><td>Pine Script v6, Express on Railway, Neon Postgres, Chrome MV3 + React + TypeScript</td></tr>
+          <tr><td>Evaluation</td><td>Custom eval architecture &mdash; EvalPlan, immutable dataset manifest, holdout ledger, R-multiple scoring, counterfactual separation</td></tr>
+          <tr><td>Process</td><td>GitHub (issues, PRs, CI, exact-SHA evidence), Linear, a persistent multi-agent coordination thread</td></tr>
+          <tr><td>AI agents</td><td>In-IDE builder; separate independent-review agent; documentation agent</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="lessons">
+    <span class="section-num">10 — Transferable lessons</span>
+    <h2>What carries beyond trading</h2>
+    <ul class="clean">
+      <li><strong>Evidence quality is the ceiling on AI usefulness.</strong> Once the deterministic inputs were clean, prompt engineering stopped being the bottleneck.</li>
+      <li><strong>Separate intelligence from authority.</strong> A model becomes more useful when given less irreversible power &mdash; it can propose freely because it cannot act.</li>
+      <li><strong>Green checks are not proof.</strong> Track the six truth states separately and never collapse them.</li>
+      <li><strong>Test the tester.</strong> Any script that certifies a claim needs adversarial tests of its own.</li>
+      <li><strong>Independent review beats self-report</strong> &mdash; including for prose. Documentation can broaden scope just like code.</li>
+      <li><strong>A trustworthy notebook precedes a trustworthy strategy.</strong> The audit path was hardened to safety-critical standards before any strategy code was written.</li>
+      <li><strong>Directing AI-assisted engineering is a real skill.</strong> The human job moved up: from writing every line to governing intent, architecture, evidence, and promotion.</li>
+    </ul>
+  </section>
+
+  <section id="evidence">
+    <span class="section-num">11 — Selected evidence</span>
+    <h2>Traceable to commits</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Milestone</th><th>Evidence</th><th class="num-col">Merged</th></tr></thead>
+        <tbody>
+          <tr><td>Coach shipped and frozen</td><td class="mono">reflection package · main 67c12de</td><td class="num-col">2026-05-23</td></tr>
+          <tr><td>No LLM in the execution chain</td><td class="mono">ADR-004</td><td class="num-col">2026-07-08</td></tr>
+          <tr><td>Sierra as sole autonomous data source</td><td class="mono">ADR-005 · issue #135</td><td class="num-col">2026-07-22</td></tr>
+          <tr><td>Telemetry exporter + first API-semantics incident</td><td class="mono">PR #115</td><td class="num-col">2026-07-23</td></tr>
+          <tr><td>Bounded capture / weak-proxy incident fix</td><td class="mono">PR #142</td><td class="num-col">2026-08-03</td></tr>
+          <tr><td>Sierra events &rarr; Evidence Packet (Phase 2)</td><td class="mono">PR #149 · issue #76</td><td class="num-col">2026-08-05</td></tr>
+          <tr><td>Canonical evaluation architecture</td><td class="mono">PR #158</td><td class="num-col">2026-08-10</td></tr>
+          <tr><td>Models as scientists, not traders</td><td class="mono">PR #160 · issues #156 / #159</td><td class="num-col">2026-08-12</td></tr>
+          <tr><td>MarketState / AuctionState v1 (Phase 3)</td><td class="mono">PR #151 + #168 · issue #77</td><td class="num-col">2026-08-20</td></tr>
+          <tr><td>PaperIntent + audit + paper broker (Phase 4)</td><td class="mono">PR #170 + #175 · issue #78</td><td class="num-col">2026-08-22 / 25</td></tr>
+          <tr><td>Deterministic RiskKernel (Phase 5)</td><td class="mono">issue #79 · PR #176 draft</td><td class="num-col">in progress</td></tr>
+          <tr><td>Multi-agent coordination protocol</td><td class="mono">issue #150</td><td class="num-col">ongoing</td></tr>
+          <tr><td>Living case-study system</td><td class="mono">issue #164 · PR #173</td><td class="num-col">ongoing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.86rem;color:var(--muted)">Links resolve inside the private repository. During an interview they are shown by screen-share; the public edition keeps only what stands on its own.</p>
+  </section>
+
+  <section id="gate">
+    <span class="section-num">12 — Public boundary</span>
+    <h2>What this edition publishes</h2>
+    <p>The source repository is private, proprietary, and co-owned. This public copy explains the engineering method without transferring or exposing the private source.</p>
+    <ul class="checklist">
+      <li><strong>Sanitised.</strong> No credentials, tokens, secrets, machine-local paths, broker or account identifiers, or third-party personal data.</li>
+      <li><strong>No edge leakage.</strong> No strategy parameters, trigger thresholds, or order-flow logic. High-level names only.</li>
+      <li><strong>Bounded claims.</strong> Nothing implies profitability, positive expectancy, or live execution; capability states remain explicit.</li>
+      <li><strong>Private evidence separated.</strong> Internal issue, PR, and commit references appear as labels only, without private links.</li>
+      <li><strong>Public destination.</strong> This rendered page and its markdown source live in the public case-study repository.</li>
+    </ul>
+  </section>
+
+  <div class="footnote">
+    <p><strong>Author&rsquo;s note.</strong> &ldquo;The operator&rdquo; describes the role accurately: not every line of this system was hand-written by one person. One person set the direction and architecture, defined the evidence and safety standards, ran the independent-review model, performed the manual validations, and made every promotion decision &mdash; while AI agents did much of the implementation and a separate agent audited it. The honest version of this story is more interesting than &ldquo;AI built a trading bot,&rdquo; and it is the version an interviewer can trace back to commits.</p>
+    <p class="mono">Historical source snapshot reconciled 2026-08-26; public export refreshed 2026-09-21. Private engineering evidence available by screen-share during an interview. Not financial advice.</p>
+  </div>
+
+</div>
+</body>
+</html>
