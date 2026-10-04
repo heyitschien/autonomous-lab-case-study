@@ -1,722 +1,402 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Autonomous Lab — engineering case study (public edition). Process, architecture, failures, and what is proven vs. not, as of Phase 5. Not financial advice.">
-<meta name="robots" content="index,follow">
-<title>Autonomous Lab Case Study</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
-<style>
-  :root {
-    --bg: #f6f7f9;
-    --surface: #ffffff;
-    --surface-sunk: #f0f2f5;
-    --ink: #191e25;
-    --ink-soft: #3d4650;
-    --muted: #6a7480;
-    --rule: #e3e6eb;
-    --rule-strong: #cfd4dc;
-    --accent: #12726b;
-    --accent-quiet: #e4efee;
-    --ok: #3f7f56;
-    --ok-bg: #eaf3ec;
-    --warn: #9a6b1c;
-    --warn-bg: #f6efe1;
-    --no: #a6473d;
-    --no-bg: #f6e9e7;
-    --mono-bg: #eef1f4;
-    --shadow: 0 1px 2px rgba(20, 28, 38, .04), 0 8px 24px -12px rgba(20, 28, 38, .12);
-
-    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
-    --font-body: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-    --measure: 68ch;
-    --pad-x: clamp(1.25rem, 5vw, 4rem);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1216;
-      --surface: #151b21;
-      --surface-sunk: #10161b;
-      --ink: #e4e8ec;
-      --ink-soft: #aeb8c2;
-      --muted: #7c8894;
-      --rule: #262e37;
-      --rule-strong: #333d48;
-      --accent: #4fb3aa;
-      --accent-quiet: #14211f;
-      --ok: #6fb98a;
-      --ok-bg: #16241c;
-      --warn: #d0a05a;
-      --warn-bg: #2a2113;
-      --no: #d98177;
-      --no-bg: #2c1a17;
-      --mono-bg: #1c242c;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .55);
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Chien Escalera Duong turned an ambiguous, high-consequence idea into a governed, testable AI-assisted engineering program—with deterministic authority, independent review, and human approval gates.">
+  <meta name="theme-color" content="#08110f">
+  <meta name="robots" content="index,follow">
+  <title>Autonomous Lab · AI Implementation Case Study · Chien Escalera Duong</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2308110f'/%3E%3Cpath d='M16 44V20h8l8 12 8-12h8v24h-7V31L32 44 23 31v13z' fill='%23a6ffcb'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eef8f2;
+      --ink-soft: #b8c9c0;
+      --muted: #82958b;
+      --paper: #08110f;
+      --paper-2: #0c1714;
+      --paper-3: #12201c;
+      --line: #25362f;
+      --line-strong: #40564d;
+      --signal: #a6ffcb;
+      --amber: #f5c66a;
+      --rose: #ff9c91;
+      --blue: #9dc7ff;
+      --serif: "Newsreader", Georgia, serif;
+      --sans: "Manrope", system-ui, sans-serif;
+      --mono: "DM Mono", ui-monospace, monospace;
+      --max: 1200px;
+      --pad: clamp(1.25rem, 4vw, 3rem);
     }
-  }
 
-  :root[data-theme="dark"] {
-    --bg: #0e1216;
-    --surface: #151b21;
-    --surface-sunk: #10161b;
-    --ink: #e4e8ec;
-    --ink-soft: #aeb8c2;
-    --muted: #7c8894;
-    --rule: #262e37;
-    --rule-strong: #333d48;
-    --accent: #4fb3aa;
-    --accent-quiet: #14211f;
-    --ok: #6fb98a;
-    --ok-bg: #16241c;
-    --warn: #d0a05a;
-    --warn-bg: #2a2113;
-    --no: #d98177;
-    --no-bg: #2c1a17;
-    --mono-bg: #1c242c;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px -14px rgba(0, 0, 0, .55);
-  }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 78% 5%, rgba(48, 131, 94, .18), transparent 28rem), linear-gradient(180deg, #07100e 0%, var(--paper) 55%, #0a1512 100%);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image: linear-gradient(rgba(166,255,203,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(166,255,203,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+    ::selection { background: var(--signal); color: var(--paper); }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--signal); outline-offset: 4px; }
+    img, svg { display: block; max-width: 100%; }
+    figure { margin: 0; }
+    p, ul { margin-top: 0; }
+    button { font: inherit; }
+    .shell { width: min(100%, var(--max)); margin-inline: auto; padding-inline: var(--pad); }
+    .skip { position: fixed; left: 1rem; top: 1rem; z-index: 20; transform: translateY(-160%); background: var(--signal); color: var(--paper); padding: .65rem .9rem; border-radius: 999px; font-weight: 700; }
+    .skip:focus { transform: translateY(0); }
 
-  *, *::before, *::after { box-sizing: border-box; }
+    .site-nav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(64,86,77,.68); background: rgba(8,17,15,.83); backdrop-filter: blur(18px); }
+    .nav-inner { min-height: 4.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { display: flex; align-items: center; gap: .8rem; text-decoration: none; font-weight: 700; letter-spacing: -.02em; }
+    .brand-mark { width: 2rem; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--line-strong); color: var(--signal); font-family: var(--mono); font-size: .78rem; }
+    .brand small { display: block; color: var(--muted); font: 400 .72rem/1.2 var(--mono); letter-spacing: .04em; }
+    .nav-links { display: flex; align-items: center; gap: 1.25rem; }
+    .nav-links a { color: var(--ink-soft); font-size: .88rem; text-decoration: none; }
+    .nav-links a:hover { color: var(--signal); }
+    .nav-cta { border: 1px solid var(--line-strong); border-radius: 999px; padding: .5rem .8rem; }
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 1.0625rem;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
+    .hero { min-height: calc(100svh - 4.25rem); display: grid; align-items: center; padding-block: clamp(4rem, 9vw, 8rem); }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(20rem, .78fr); gap: clamp(3rem, 8vw, 7rem); align-items: center; }
+    .hero-grid > * { min-width: 0; }
+    .eyebrow { display: flex; align-items: center; gap: .7rem; color: var(--signal); font: 500 .78rem/1.3 var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 1.8rem; height: 1px; background: currentColor; }
+    h1, h2, h3 { text-wrap: balance; }
+    h1 { margin: 1.25rem 0 1.4rem; max-width: 13ch; font: 400 clamp(3.25rem, 7.2vw, 6.75rem)/.92 var(--serif); letter-spacing: -.045em; }
+    .hero-lede { max-width: 64ch; color: var(--ink-soft); font-size: clamp(1.05rem, 1.5vw, 1.24rem); line-height: 1.65; }
+    .hero-lede strong { color: var(--ink); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin: 2rem 0; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 3rem; padding: .7rem 1.05rem; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: .92rem; }
+    .button.primary { background: var(--signal); border-color: var(--signal); color: #07100e; }
+    .button:hover { border-color: var(--signal); transform: translateY(-1px); }
+    .meta-row { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .tag { padding: .38rem .66rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgba(18,32,28,.55); font: 400 .76rem/1.2 var(--mono); }
+    .tag.live { color: var(--signal); border-color: rgba(166,255,203,.35); }
 
-  .wrap {
-    max-width: calc(var(--measure) + var(--pad-x) * 2);
-    margin: 0 auto;
-    padding: 0 var(--pad-x) 6rem;
-  }
+    .authority-map { position: relative; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid var(--line); background: rgba(12,23,20,.78); box-shadow: 0 30px 80px rgba(0,0,0,.25); }
+    .authority-map::before { content: ""; position: absolute; inset: .55rem; border: 1px solid rgba(166,255,203,.08); pointer-events: none; }
+    .map-kicker { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font: .72rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+    .map-title { margin: .7rem 0 1.4rem; font: 400 1.65rem/1.15 var(--serif); }
+    .map-flow { display: grid; gap: .55rem; }
+    .map-node { display: grid; grid-template-columns: 2rem 1fr auto; align-items: center; gap: .75rem; padding: .8rem; border: 1px solid var(--line); background: var(--paper-2); }
+    .map-node .n { color: var(--muted); font: .72rem var(--mono); }
+    .map-node strong { font-size: .9rem; }
+    .map-node small { color: var(--muted); font: .68rem var(--mono); }
+    .map-node.authority { border-color: rgba(166,255,203,.45); box-shadow: inset 3px 0 var(--signal); }
+    .map-node.model { border-style: dashed; border-color: rgba(245,198,106,.55); }
+    .boundary-note { display: flex; align-items: center; gap: .6rem; margin: .7rem 0; color: var(--rose); font: .7rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+    .boundary-note::before, .boundary-note::after { content: ""; height: 1px; flex: 1; background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px); }
 
-  /* ---- masthead ---- */
-  .masthead {
-    padding: clamp(3rem, 9vw, 6rem) 0 2.25rem;
-    border-bottom: 1px solid var(--rule);
-    animation: rise .6s cubic-bezier(.2, .7, .2, 1) both;
-  }
-  @media (prefers-reduced-motion: reduce) { .masthead { animation: none; } }
-  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .section { padding-block: clamp(5rem, 10vw, 9rem); border-top: 1px solid var(--line); }
+    .section-head { display: grid; grid-template-columns: minmax(8rem,.4fr) minmax(0,1.2fr); gap: 2rem; margin-bottom: clamp(2.5rem, 5vw, 4.5rem); }
+    .section-label { color: var(--signal); font: .75rem/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    h2 { margin: 0; max-width: 18ch; font: 400 clamp(2.4rem, 5vw, 4.6rem)/1 var(--serif); letter-spacing: -.035em; }
+    .section-intro { grid-column: 2; max-width: 66ch; color: var(--ink-soft); font-size: 1.05rem; }
+    h3 { margin: 0 0 .7rem; font: 500 clamp(1.25rem, 2vw, 1.65rem)/1.25 var(--serif); }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: .75rem;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 0 0 1.1rem;
-  }
+    .scan-grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); }
+    .signal-card { min-height: 12.5rem; padding: 1.35rem; border-right: 1px solid var(--line); background: rgba(12,23,20,.55); }
+    .signal-card:last-child { border-right: 0; }
+    .signal-value { color: var(--signal); font: 400 clamp(2.6rem, 5vw, 4.6rem)/1 var(--serif); }
+    .signal-card h3 { margin-top: 1.25rem; font-family: var(--sans); font-size: .95rem; font-weight: 700; }
+    .signal-card p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.55; }
+    .honesty { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 1.25rem; background: var(--line); border: 1px solid var(--line); }
+    .honesty > div { padding: clamp(1.35rem, 3vw, 2.2rem); background: var(--paper-2); }
+    .honesty h3 { display: flex; align-items: center; gap: .55rem; font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+    .honesty .yes h3 { color: var(--signal); }
+    .honesty .no h3 { color: var(--rose); }
+    .honesty ul { margin-bottom: 0; padding-left: 1.2rem; color: var(--ink-soft); }
+    .honesty li + li { margin-top: .65rem; }
 
-  h1 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: clamp(2.1rem, 6vw, 3.35rem);
-    line-height: 1.08;
-    letter-spacing: -.012em;
-    text-wrap: balance;
-    margin: 0 0 1rem;
-  }
+    .story-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(2rem, 6vw, 6rem); }
+    .story-sticky { position: sticky; top: 7rem; align-self: start; }
+    .story-sticky p { color: var(--ink-soft); }
+    .plain-callout { margin-top: 1.5rem; padding: 1.25rem; border-left: 2px solid var(--signal); background: var(--paper-3); color: var(--ink-soft); }
+    .story-list { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+    .story-item { display: grid; grid-template-columns: 3.5rem 1fr; gap: 1rem; padding: clamp(1.4rem, 3vw, 2rem); background: var(--paper-2); }
+    .story-item .index { color: var(--signal); font: 1rem var(--mono); }
+    .story-item p { color: var(--ink-soft); margin-bottom: 0; }
 
-  .thesis {
-    font-family: var(--font-display);
-    font-size: clamp(1.15rem, 2.6vw, 1.4rem);
-    line-height: 1.5;
-    color: var(--ink-soft);
-    max-width: 60ch;
-    margin: 0 0 2rem;
-  }
-  .thesis em { font-style: italic; color: var(--ink); }
+    .architecture { border: 1px solid var(--line); background: var(--paper-2); overflow: hidden; }
+    .arch-legend { display: flex; flex-wrap: wrap; gap: .7rem 1.4rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); color: var(--muted); font: .72rem var(--mono); }
+    .legend-key { display: flex; align-items: center; gap: .45rem; }
+    .legend-key::before { content: ""; width: .65rem; height: .65rem; border: 1px solid currentColor; }
+    .legend-key.code { color: var(--signal); }
+    .legend-key.model { color: var(--amber); }
+    .legend-key.human { color: var(--blue); }
+    .arch-body { display: grid; grid-template-columns: 1.25fr .75fr; }
+    .spine, .shadow { padding: clamp(1.2rem, 3vw, 2rem); }
+    .spine { border-right: 1px dashed var(--rose); }
+    .arch-cap { color: var(--muted); font: .7rem var(--mono); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1rem; }
+    .arch-node { position: relative; padding: 1rem 1.1rem; border: 1px solid var(--line-strong); background: #0a1512; }
+    .arch-node + .arch-node { margin-top: 1.8rem; }
+    .arch-node + .arch-node::before { content: ""; position: absolute; width: 1px; height: 1.8rem; background: var(--line-strong); left: 1.6rem; bottom: 100%; }
+    .arch-node strong { display: block; font-size: .92rem; }
+    .arch-node span { display: block; color: var(--muted); font: .72rem/1.5 var(--mono); }
+    .arch-node.on { border-color: rgba(166,255,203,.5); box-shadow: inset 3px 0 var(--signal); }
+    .arch-node.wip { border-color: rgba(245,198,106,.55); box-shadow: inset 3px 0 var(--amber); }
+    .arch-node.locked { opacity: .55; }
+    .shadow .arch-node { border-style: dashed; }
+    .shadow-note { margin-top: 1.2rem; color: var(--ink-soft); font-size: .85rem; }
 
-  .status-rail {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .5rem .5rem;
-    font-family: var(--font-mono);
-    font-size: .78rem;
-    letter-spacing: .01em;
-  }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    padding: .3rem .6rem;
-    border: 1px solid var(--rule-strong);
-    border-radius: 2px;
-    color: var(--ink-soft);
-    background: var(--surface);
-    white-space: nowrap;
-  }
-  .chip::before {
-    content: "";
-    width: 6px; height: 6px;
-    background: var(--accent);
-    display: block;
-  }
-  .chip.flag::before { background: var(--warn); }
+    .loop { display: grid; grid-template-columns: repeat(7, 1fr); gap: .65rem; }
+    .loop-step { min-height: 9rem; padding: 1rem; border-top: 2px solid var(--line-strong); background: var(--paper-2); }
+    .loop-step strong { display: block; margin: .75rem 0 .45rem; font-size: .88rem; }
+    .loop-step p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .loop-step .n { color: var(--signal); font: .7rem var(--mono); }
+    .loop-step.gate { border-color: var(--blue); }
+    .loop-step.review { border-color: var(--amber); }
 
-  /* ---- section rhythm ---- */
-  section { padding-top: 3.25rem; }
-  section > h2 {
-    font-family: var(--font-display);
-    font-weight: 500;
-    font-size: clamp(1.4rem, 3.4vw, 1.9rem);
-    line-height: 1.2;
-    letter-spacing: -.008em;
-    text-wrap: balance;
-    margin: 0 0 .35rem;
-  }
-  .section-num {
-    font-family: var(--font-mono);
-    font-size: .75rem;
-    letter-spacing: .1em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-  section > h2 + .lede { margin-top: .75rem; }
-  .lede { color: var(--ink-soft); }
+    .role-table { width: 100%; border-collapse: collapse; border: 1px solid var(--line); background: var(--paper-2); }
+    .role-table th, .role-table td { padding: 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .role-table th { color: var(--muted); font: .7rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .role-table td:first-child { color: var(--signal); font-family: var(--mono); font-size: .8rem; white-space: nowrap; }
+    .role-table td { color: var(--ink-soft); font-size: .9rem; }
+    .role-table tr:last-child td { border-bottom: 0; }
 
-  p { margin: 0 0 1.1rem; max-width: var(--measure); }
-  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
-  a:hover { border-bottom-color: var(--accent); }
-  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 1px; }
+    .failures { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .failure { padding: clamp(1.4rem, 3vw, 2rem); border: 1px solid var(--line); background: var(--paper-2); }
+    .failure .num { color: var(--amber); font: .75rem var(--mono); }
+    .failure h3 { margin-top: 1.2rem; }
+    .failure p { color: var(--ink-soft); }
+    .failure dl { display: grid; grid-template-columns: 5rem 1fr; gap: .5rem 1rem; margin: 1.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); }
+    .failure dt { color: var(--muted); font: .7rem var(--mono); text-transform: uppercase; }
+    .failure dd { margin: 0; color: var(--ink-soft); font-size: .82rem; }
 
-  code, .mono { font-family: var(--font-mono); font-size: .86em; }
-  p code, li code, td code {
-    background: var(--mono-bg);
-    padding: .08em .38em;
-    border-radius: 2px;
-    color: var(--ink);
-  }
+    .status-panel { display: grid; grid-template-columns: .75fr 1.25fr; border: 1px solid var(--line); background: var(--paper-2); }
+    .status-summary { padding: clamp(1.5rem, 4vw, 3rem); border-right: 1px solid var(--line); }
+    .status-summary .asof { color: var(--signal); font: .74rem var(--mono); text-transform: uppercase; }
+    .status-summary .big { margin: 1rem 0; font: 400 clamp(3rem, 6vw, 5.5rem)/.9 var(--serif); }
+    .status-summary p { color: var(--ink-soft); }
+    .phase-list { padding: clamp(1rem, 3vw, 2rem); }
+    .phase { display: grid; grid-template-columns: 5rem 1fr auto; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+    .phase:last-child { border-bottom: 0; }
+    .phase-name { color: var(--muted); font: .72rem var(--mono); }
+    .phase strong { display: block; font-size: .9rem; }
+    .phase small { color: var(--muted); font-size: .76rem; }
+    .state { padding: .25rem .55rem; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font: .66rem var(--mono); white-space: nowrap; }
+    .state.done { color: var(--signal); border-color: rgba(166,255,203,.4); }
+    .state.wip { color: var(--amber); border-color: rgba(245,198,106,.45); }
 
-  strong { font-weight: 600; color: var(--ink); }
+    .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .capability { padding: 1.5rem; border: 1px solid var(--line); background: var(--paper-2); }
+    .capability .icon { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border: 1px solid var(--line-strong); color: var(--signal); font: .72rem var(--mono); }
+    .capability h3 { margin-top: 1.4rem; font-family: var(--sans); font-size: 1rem; font-weight: 700; }
+    .capability p { margin-bottom: 0; color: var(--muted); font-size: .86rem; }
 
-  ul.clean { list-style: none; margin: 0 0 1.2rem; padding: 0; max-width: var(--measure); }
-  ul.clean li {
-    position: relative;
-    padding-left: 1.4rem;
-    margin-bottom: .7rem;
-  }
-  ul.clean li::before {
-    content: "";
-    position: absolute;
-    left: 0; top: .62em;
-    width: 7px; height: 7px;
-    border: 1.5px solid var(--accent);
-  }
+    .proof-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .proof { padding: 1.4rem; border: 1px solid var(--line); background: var(--paper-2); }
+    .proof .proof-type { color: var(--signal); font: .7rem var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+    .proof p { color: var(--ink-soft); font-size: .88rem; }
+    .text-link { color: var(--signal); text-underline-offset: .25em; }
+    .text-link:hover { text-decoration-thickness: 2px; }
 
-  /* ---- callout ---- */
-  .callout {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--accent);
-    padding: 1.15rem 1.35rem;
-    margin: 0 0 1.4rem;
-    box-shadow: var(--shadow);
-  }
-  .callout p:last-child { margin-bottom: 0; }
-  .callout.warn { border-left-color: var(--warn); }
+    .closing { padding-block: clamp(5rem, 12vw, 10rem); }
+    .closing-panel { position: relative; overflow: hidden; padding: clamp(2rem, 7vw, 5.5rem); border: 1px solid rgba(166,255,203,.35); background: linear-gradient(135deg, rgba(22,49,39,.8), rgba(8,17,15,.95)); }
+    .closing-panel::after { content: "HUMAN / DIRECTED"; position: absolute; right: -1rem; bottom: -1.5rem; color: rgba(166,255,203,.05); font: 500 clamp(3.5rem, 10vw, 8rem)/1 var(--mono); white-space: nowrap; }
+    .closing h2 { max-width: 14ch; }
+    .closing p { position: relative; z-index: 1; max-width: 60ch; color: var(--ink-soft); font-size: 1.05rem; }
+    .closing .hero-actions { position: relative; z-index: 1; }
+    footer { padding: 2rem 0 3.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
+    .footer-row { display: flex; justify-content: space-between; gap: 2rem; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
+    footer a { color: var(--ink-soft); }
 
-  .tldr {
-    font-family: var(--font-display);
-    font-size: 1.12rem;
-    line-height: 1.6;
-  }
-
-  /* ---- contrast grid ---- */
-  .contrast {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-    margin: 1.5rem 0;
-    box-shadow: var(--shadow);
-  }
-  .contrast > div { background: var(--surface); padding: 1.1rem 1.2rem; }
-  .contrast h3 {
-    font-family: var(--font-mono);
-    font-size: .72rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    margin: 0 0 .8rem;
-  }
-  .contrast .yes h3 { color: var(--ok); }
-  .contrast .no h3 { color: var(--no); }
-  .contrast ul { margin: 0; padding-left: 1.1rem; }
-  .contrast li { margin-bottom: .5rem; font-size: .95rem; color: var(--ink-soft); }
-  @media (max-width: 620px) { .contrast { grid-template-columns: 1fr; } }
-
-  /* ---- tables ---- */
-  .table-scroll { overflow-x: auto; margin: 1.4rem 0; border: 1px solid var(--rule); box-shadow: var(--shadow); }
-  table { border-collapse: collapse; width: 100%; font-size: .92rem; background: var(--surface); }
-  th, td { text-align: left; padding: .68rem .85rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  thead th {
-    font-family: var(--font-mono);
-    font-size: .7rem;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    background: var(--surface-sunk);
-    border-bottom: 1px solid var(--rule-strong);
-    position: sticky; top: 0;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  td .mono { color: var(--ink-soft); font-size: .82rem; }
-  .num-col { font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-  /* status marks in matrix */
-  .m { font-family: var(--font-mono); font-weight: 500; font-size: .8rem; display: inline-block; min-width: 1.1rem; }
-  .m-y { color: var(--ok); }
-  .m-p { color: var(--warn); }
-  .m-n { color: var(--no); }
-  .m-x { color: var(--muted); }
-
-  .pill {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: .72rem;
-    letter-spacing: .03em;
-    padding: .12rem .5rem;
-    border-radius: 2px;
-    border: 1px solid transparent;
-    white-space: nowrap;
-  }
-  .pill.done { color: var(--ok); background: var(--ok-bg); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
-  .pill.wip { color: var(--warn); background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
-  .pill.todo { color: var(--muted); background: var(--surface-sunk); border-color: var(--rule-strong); }
-
-  /* ---- timeline ---- */
-  .timeline { margin: 1.6rem 0; border-left: 2px solid var(--rule-strong); padding-left: 1.4rem; display: flex; flex-direction: column; gap: 1.5rem; }
-  .tl-item { position: relative; }
-  .tl-item::before {
-    content: "";
-    position: absolute;
-    left: calc(-1.4rem - 6px);
-    top: .4em;
-    width: 10px; height: 10px;
-    background: var(--bg);
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-  }
-  .tl-item.muted::before { border-color: var(--rule-strong); }
-  .tl-date { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
-  .tl-item.muted .tl-date { color: var(--muted); }
-  .tl-item h4 { margin: .25rem 0 .35rem; font-size: 1.02rem; font-weight: 600; }
-  .tl-item p { margin: 0; font-size: .93rem; color: var(--ink-soft); }
-
-  /* ---- architecture diagram ---- */
-  .diagram {
-    margin: 1.6rem 0;
-    padding: 1.5rem;
-    background: var(--surface-sunk);
-    border: 1px solid var(--rule);
-    overflow-x: auto;
-  }
-  .diagram-inner { min-width: 460px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 0 1rem; align-items: start; }
-  .spine { display: flex; flex-direction: column; gap: .5rem; }
-  .node {
-    background: var(--surface);
-    border: 1px solid var(--rule-strong);
-    padding: .55rem .7rem;
-    font-size: .82rem;
-    line-height: 1.35;
-  }
-  .node b { display: block; font-weight: 600; font-size: .84rem; }
-  .node .tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em; color: var(--muted); }
-  .node.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
-  .node.wip-node { box-shadow: inset 3px 0 0 var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--rule-strong)); }
-  .spine .arrow { text-align: center; color: var(--muted); font-family: var(--font-mono); font-size: .8rem; line-height: 1; }
-  .col-mid { display: flex; align-items: center; align-self: stretch; }
-  .boundary {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-family: var(--font-mono);
-    font-size: .68rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--no);
-    padding: 0 .3rem;
-    border-left: 2px dashed color-mix(in srgb, var(--no) 55%, transparent);
-    height: 100%;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .llm-col { display: flex; flex-direction: column; gap: .6rem; padding-top: 2.2rem; }
-  .llm-col .node.llm { border-style: dashed; }
-  .diagram-caption { font-size: .82rem; color: var(--muted); margin: .9rem 0 0; max-width: none; }
-  @media (max-width: 640px) {
-    .diagram-inner { grid-template-columns: 1fr; }
-    .col-mid { display: none; }
-    .llm-col { padding-top: 1rem; border-top: 1px dashed color-mix(in srgb, var(--no) 45%, transparent); margin-top: 1rem; }
-  }
-
-  /* ---- failures ---- */
-  .failure { border-top: 1px solid var(--rule); padding: 1.5rem 0; }
-  .failure:first-of-type { border-top: none; }
-  .failure .fx-head { display: flex; gap: .8rem; align-items: baseline; margin-bottom: .6rem; }
-  .fx-idx { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent); line-height: 1; }
-  .failure h3 { margin: 0; font-size: 1.08rem; font-weight: 600; line-height: 1.35; }
-  .failure .meta { font-family: var(--font-mono); font-size: .74rem; color: var(--muted); margin-top: .2rem; }
-  .kv { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; font-size: .9rem; margin-top: .7rem; }
-  .kv dt { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding-top: .15rem; }
-  .kv dd { margin: 0; color: var(--ink-soft); }
-  @media (max-width: 560px) { .kv { grid-template-columns: 1fr; gap: .1rem; } .kv dd { margin-bottom: .6rem; } }
-
-  /* ---- checklist ---- */
-  .checklist { list-style: none; margin: 1.2rem 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
-  .checklist li { display: flex; gap: .7rem; align-items: flex-start; font-size: .95rem; color: var(--ink-soft); }
-  .checklist li::before {
-    content: "";
-    flex: none;
-    width: 1rem; height: 1rem;
-    margin-top: .18rem;
-    border: 1.5px solid var(--rule-strong);
-    border-radius: 2px;
-  }
-
-  .footnote {
-    margin-top: 3.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--rule);
-    font-size: .86rem;
-    color: var(--muted);
-  }
-  .footnote p { max-width: none; }
-  .footnote .mono { font-size: .78rem; }
-
-  hr.soft { border: none; border-top: 1px solid var(--rule); margin: 2.5rem 0 0; }
-</style>
+    @media (max-width: 900px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { min-height: auto; }
+      .hero-grid, .story-grid, .status-panel { grid-template-columns: 1fr; }
+      .story-sticky { position: static; }
+      .scan-grid { grid-template-columns: 1fr 1fr; }
+      .signal-card:nth-child(2) { border-right: 0; }
+      .signal-card:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .loop { grid-template-columns: repeat(2, 1fr); }
+      .loop-step:last-child { grid-column: 1 / -1; }
+      .status-summary { border-right: 0; border-bottom: 1px solid var(--line); }
+      .cap-grid, .proof-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      .brand span:last-child { display: none; }
+      h1 { font-size: clamp(3rem, 16vw, 4.75rem); }
+      .section-head { grid-template-columns: 1fr; }
+      .section-intro { grid-column: 1; }
+      .scan-grid, .honesty, .failures, .cap-grid, .proof-grid, .arch-body { grid-template-columns: 1fr; }
+      .signal-card { border-right: 0; border-bottom: 1px solid var(--line); }
+      .signal-card:last-child { border-bottom: 0; }
+      .spine { border-right: 0; border-bottom: 1px dashed var(--rose); }
+      .loop { grid-template-columns: 1fr; }
+      .loop-step:last-child { grid-column: auto; }
+      .role-table { min-width: 42rem; }
+      .phase { grid-template-columns: 4rem 1fr; }
+      .phase .state { grid-column: 2; justify-self: start; }
+      .footer-row { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-copy, .authority-map { animation: enter .7s cubic-bezier(.2,.7,.2,1) both; }
+      .authority-map { animation-delay: .12s; }
+      @keyframes enter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    }
+    @media print {
+      :root { color-scheme: light; --ink:#142019; --ink-soft:#33483e; --muted:#5b6f65; --paper:#fff; --paper-2:#fff; --paper-3:#f2f6f3; --line:#cbd6cf; --line-strong:#98aaa0; --signal:#087244; }
+      body { background: #fff; }
+      body::before, .site-nav, .hero-actions, .closing { display: none; }
+      .hero { min-height: auto; padding-block: 2rem; }
+      .section { padding-block: 2rem; break-inside: avoid; }
+      .authority-map, .signal-card, .story-item, .failure, .capability, .proof { box-shadow: none; }
+      a { text-decoration: none; }
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-
-  <header class="masthead">
-    <p class="eyebrow">Engineering case study · public edition</p>
-    <h1>Directing an AI-assisted engineering institution</h1>
-    <p class="thesis">A human sets the architecture, the evidence bar, and the approval gates. Multiple AI agents build and review. The subject is a <em>safety-critical trading research system</em> where deterministic code holds all authority and language models are only allowed to explain and propose.</p>
-    <div class="status-rail">
-      <span class="chip">Build phase 5 of 10</span>
-      <span class="chip">Reconciled 2026-08-26</span>
-      <span class="chip">Source repo private</span>
-      <span class="chip flag">Public case study</span>
-    </div>
-  </header>
-
-  <section id="tldr">
-    <span class="section-num">01 — In 30 seconds</span>
-    <h2>What this is</h2>
-    <div class="callout">
-      <p class="tldr">I direct an AI-assisted engineering process and use AI agents as builders and independent reviewers to develop a trading research system for Micro E-mini S&amp;P 500 futures. It is deliberately built so <strong>deterministic code owns every risk and execution decision</strong>, while language models only explain, classify, and propose.</p>
-    </div>
-    <p>It is <strong>not</strong> a profitable bot, it does <strong>not</strong> place live trades, and no trading edge has been proven. The artifact worth showing is the <strong>laboratory around the strategy</strong>: source provenance, a deterministic market-state layer, an audit trail held to safety-critical standards, an evidence-judging discipline, and a multi-agent workflow with a human promotion gate.</p>
-    <p style="font-size:.9rem;color:var(--muted)">This is not financial advice and not an offer of any product.</p>
-  </section>
-
-  <section id="claims">
-    <span class="section-num">02 — Honesty box</span>
-    <h2>What it demonstrates, and what it doesn&rsquo;t</h2>
-    <div class="contrast">
-      <div class="yes">
-        <h3>Demonstrates</h3>
-        <ul>
-          <li>A shipped decision-support product evolving into a safety-first research system</li>
-          <li>An architecture that separates evidence &rarr; intelligence &rarr; authority &rarr; evaluation &rarr; promotion</li>
-          <li>A repeatable multi-agent workflow with independent review and exact-commit evidence</li>
-          <li>Real failures converted into regression tests and stronger validators</li>
-          <li>Transferable lessons about directing AI-assisted engineering</li>
-        </ul>
-      </div>
-      <div class="no">
-        <h3>Does not claim</h3>
-        <ul>
-          <li>That the system trades profitably</li>
-          <li>That any strategy has positive expectancy</li>
-          <li>That live brokerage execution exists</li>
-          <li>That AI is making trade decisions</li>
-          <li>That the project is finished &mdash; it is mid-build</li>
-        </ul>
+  <a class="skip" href="#main">Skip to the case study</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <div class="shell nav-inner">
+      <a class="brand" href="#top" aria-label="Chien Escalera Duong, back to top">
+        <span class="brand-mark">CE</span>
+        <span>Chien Escalera Duong<small>AI implementation · technical solutions</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="#scan">Executive scan</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#evidence">Evidence</a>
+        <a class="nav-cta" href="https://github.com/heyitschien/autonomous-lab-case-study">View repository</a>
       </div>
     </div>
-  </section>
+  </nav>
 
-  <section id="problem">
-    <span class="section-num">03 — The problem</span>
-    <h2>Orientation under time pressure</h2>
-    <p>Day trading MES demands a fast read of a moving picture: <em>Is the market live? What did the regular session do versus the overnight session? Is this data stale? What structure is forming?</em> Getting it wrong is expensive, and getting it from a chart alone is slow.</p>
-    <p>The first product answered that for a <strong>human</strong>. The current work asks a harder question: can a <strong>deterministic system</strong> be trusted to identify a bounded setup, evaluate risk, and eventually act in simulation &mdash; with language models contributing intelligence but never authority?</p>
-  </section>
-
-  <section id="evolution">
-    <span class="section-num">04 — Evolution</span>
-    <h2>From a coach for a human to a lab for a machine</h2>
-    <div class="timeline">
-      <div class="tl-item muted">
-        <div class="tl-date">2026-05 · shipped, then frozen</div>
-        <h4>MES Co-Pilot (&ldquo;Coach&rdquo;)</h4>
-        <p>Pine chart sensors &rarr; webhook &rarr; merged market state &rarr; Chrome extension &rarr; on-demand LLM coach. Decision support only. Proved the conversation layer and the &ldquo;deterministic facts first&rdquo; principle. Frozen 2026-05-23 with its own reflection package.</p>
-      </div>
-      <div class="tl-item">
-        <div class="tl-date">2026-07 · the split</div>
-        <h4>A separate personal autonomous lab</h4>
-        <p>The ceiling was not prompt quality &mdash; it was data quality, freshness, and provenance. Keep the commercial Coach isolated; start a new lab. <strong>ADR-004:</strong> language models never enter the execution chain. <strong>ADR-005:</strong> Sierra Chart becomes the single autonomous data source.</p>
-      </div>
-      <div class="tl-item">
-        <div class="tl-date">2026-08 · phases 2&ndash;4 complete</div>
-        <h4>The deterministic spine came online</h4>
-        <p>Sierra events &rarr; canonical Evidence Packet (Phase 2). Deterministic MarketState / AuctionState v1 (Phase 3). PaperIntent + append-only audit + paper broker (Phase 4). Each independently reviewed, tests green, CI green, merged.</p>
-      </div>
-      <div class="tl-item wip">
-        <div class="tl-date">now · in progress</div>
-        <h4>Phase 5 &mdash; the deterministic RiskKernel</h4>
-        <p>Config-driven, fail-closed, zero language-model interpretation. Phases 6&ndash;10 (strategy, planner, sim sniper, replay validation, live-readiness review) are not started.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="architecture">
-    <span class="section-num">05 — Architecture</span>
-    <h2>A deterministic spine; models beside it, never inside it</h2>
-    <p class="lede">Every irreversible decision belongs to deterministic code. The language-model layer can read facts and propose labels; it is never on the wait path for risk or execution.</p>
-    <div class="diagram">
-      <div class="diagram-inner">
-        <div class="spine">
-          <div class="node on"><b>Sierra Chart</b><span class="tag">sole data source · ADR-005</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node on"><b>ACSIL exporter</b><span class="tag">C++ study · 1s telemetry</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node on"><b>SourceEvent &rarr; Evidence Packet</b><span class="tag">Phase 2 · complete</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node on"><b>MarketState / AuctionState</b><span class="tag">Phase 3 · complete</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node"><b>StrategyCandidate</b><span class="tag">Phase 6 · not started</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node wip-node"><b>RiskKernel</b><span class="tag">Phase 5 · in progress · fail-closed</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node"><b>ExecutionPlanner &rarr; Ambush</b><span class="tag">Phase 7 · not started</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node"><b>ACSIL sniper</b><span class="tag">Phase 8 · simulation only</span></div>
-          <div class="arrow">&darr;</div>
-          <div class="node on"><b>Append-only audit log</b><span class="tag">Phase 4 · complete</span></div>
+  <main id="main">
+    <header class="hero shell" id="top">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Autonomous Lab · public-safe case study</p>
+          <h1>Building autonomy without surrendering judgment.</h1>
+          <p class="hero-lede">I turned an ambiguous, high-consequence systems idea into a <strong>governed AI-assisted engineering program</strong>: bounded requirements, deterministic authority, observable evidence, independent review, and a human decision gate before consequential action.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#scan">Read the 60-second scan</a>
+            <a class="button" href="#architecture">Inspect the system</a>
+          </div>
+          <div class="meta-row" aria-label="Case study status">
+            <span class="tag live">Phase 5 of 10 · in progress</span>
+            <span class="tag">Updated 2026-10-04</span>
+            <span class="tag">Private source · public method</span>
+          </div>
         </div>
-        <div class="col-mid"><div class="boundary">No authority across this line</div></div>
-        <div class="llm-col">
-          <div class="node llm"><b>Commercial Coach</b><span class="tag">isolated product · frozen</span></div>
-          <div class="node llm"><b>Shadow reviewer</b><span class="tag">designed, not built · ADR-004</span></div>
-          <p class="tag" style="margin:.2rem 0 0">Reads frozen pre-outcome evidence. Labels are graded against outcomes <em>later</em>. Never an execution input.</p>
+        <figure class="authority-map" aria-labelledby="authority-title">
+          <div class="map-kicker"><span>Authority map</span><span>Public abstraction</span></div>
+          <figcaption class="map-title" id="authority-title">Who is allowed to do what?</figcaption>
+          <div class="map-flow">
+            <div class="map-node authority"><span class="n">01</span><strong>Observe the world</strong><small>deterministic data</small></div>
+            <div class="map-node authority"><span class="n">02</span><strong>Evaluate risk</strong><small>deterministic rules</small></div>
+            <div class="map-node model"><span class="n">AI</span><strong>Explain and propose</strong><small>never authorizes</small></div>
+            <div class="boundary-note">no model crosses this line</div>
+            <div class="map-node authority"><span class="n">03</span><strong>Record evidence</strong><small>append-only audit</small></div>
+            <div class="map-node authority"><span class="n">04</span><strong>Promote or stop</strong><small>human approval</small></div>
+          </div>
+        </figure>
+      </div>
+    </header>
+
+    <section class="section shell" id="scan">
+      <div class="section-head">
+        <div class="section-label">01 · Executive scan</div>
+        <h2>The signal in sixty seconds.</h2>
+        <p class="section-intro">This is not a story about asking a model to build a trading bot. It is a case study in implementation leadership: turning uncertainty into a system that knows its boundaries, exposes its evidence, and stops when proof is missing.</p>
+      </div>
+      <div class="scan-grid" aria-label="Project signals">
+        <article class="signal-card"><div class="signal-value">5</div><h3>Foundation phases delivered</h3><p>Phases 0–4 established contracts, data, state, paper intent, and audit foundations.</p></article>
+        <article class="signal-card"><div class="signal-value">0</div><h3>Model authority over risk</h3><p>Language models may explain or propose. Deterministic code and human approval retain authority.</p></article>
+        <article class="signal-card"><div class="signal-value">6</div><h3>Proof states kept separate</h3><p>Documented, implemented, tests green, CI green, operator verified, and complete are not synonyms.</p></article>
+        <article class="signal-card"><div class="signal-value">4</div><h3>Failures converted to controls</h3><p>Real defects strengthened validators, regression tests, evidence rules, and review gates.</p></article>
+      </div>
+      <div class="honesty">
+        <div class="yes"><h3>What the work demonstrates</h3><ul><li>Requirements and architecture under real ambiguity</li><li>AI-agent coordination with bounded roles and traceable handoffs</li><li>Expected-versus-actual validation and evidence review</li><li>Risk-aware release discipline and human accountability</li></ul></div>
+        <div class="no"><h3>What it does not claim</h3><ul><li>A profitable strategy or positive trading expectancy</li><li>Live brokerage execution or production runtime readiness</li><li>AI making trade, risk, or promotion decisions</li><li>A finished system: Phase 5 remains deliberately unmerged</li></ul></div>
+      </div>
+    </section>
+
+    <section class="section shell" id="problem">
+      <div class="story-grid">
+        <div class="story-sticky">
+          <p class="section-label">02 · The business problem</p>
+          <h2>Make a moving system legible, then make it governable.</h2>
+          <p>The domain is market research. The transferable challenge is broader: many AI implementations fail because the data, decision rights, and definition of proof remain vague.</p>
+          <div class="plain-callout"><strong>In plain English:</strong> before asking AI to reason, I made sure the system could tell what happened, where the facts came from, what it was allowed to do, and who could approve the next step.</div>
+        </div>
+        <div class="story-list">
+          <article class="story-item"><div class="index">01</div><div><h3>The first product helped a human orient</h3><p>A decision-support “Coach” combined structured market facts with on-demand model explanation. It proved the usefulness of deterministic facts first—and exposed the ceiling created by weak provenance and freshness.</p></div></article>
+          <article class="story-item"><div class="index">02</div><div><h3>The lab separated research from authority</h3><p>The autonomous lab became a distinct system with a harder rule: models can contribute intelligence, but irreversible decisions remain outside the model layer.</p></div></article>
+          <article class="story-item"><div class="index">03</div><div><h3>The roadmap became a sequence of gates</h3><p>Instead of building a monolith, the work moved through data contracts, deterministic state, auditability, risk rules, strategy, planning, simulation, evaluation, and readiness review.</p></div></article>
+          <article class="story-item"><div class="index">04</div><div><h3>Every failure had to improve the institution</h3><p>A defect was not closed with a patch alone. It produced a regression test, stronger acceptance criteria, a clearer owner, or a safer stop condition.</p></div></article>
         </div>
       </div>
-      <p class="diagram-caption">Load-bearing rules, all enforced in canonical specs today: the LLM is not in the execution path; RiskKernel does zero model interpretation and is fail-closed; paper/sim before live; the Coach and the lab share deterministic facts but never authority.</p>
-    </div>
-  </section>
+    </section>
 
-  <section id="operating-model">
-    <span class="section-num">06 — Operating model</span>
-    <h2>How it is built</h2>
-    <p class="lede">The differentiator is not the trading idea. It is the discipline of the process that produces it.</p>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>Role</th><th>Who</th><th>Authority</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Operator</strong></td><td>Human (project owner)</td><td>Sets intent and priorities; approves manual validation, merges, and any irreversible step. Only role that can promote work to &ldquo;done&rdquo;.</td></tr>
-          <tr><td><strong>Builder agent</strong></td><td>AI, in-IDE</td><td>Implements code, docs, tests; opens PRs; reports with exact commit SHAs. May not self-approve an important merge.</td></tr>
-          <tr><td><strong>Independent review agent</strong></td><td>AI, separate context</td><td>Audits each PR against the issue&rsquo;s acceptance criteria using live repo state &mdash; CI, diffs, review threads. Does not trust the builder&rsquo;s summary.</td></tr>
-          <tr><td><strong>Documentation agent</strong></td><td>AI</td><td>Maintains institutional memory and this case study. No runtime authority.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>Rules that make the review real:</p>
-    <ul class="clean">
-      <li><strong>Exact-HEAD truth.</strong> Every handoff carries the full 40-character commit SHA. If <code>HEAD</code> moves, the prior verdict expires and the review is redone.</li>
-      <li><strong>Green is not done.</strong> Status is tracked in six distinct states &mdash; <span class="mono">documented</span>, <span class="mono">implemented</span>, <span class="mono">automated-tests-green</span>, <span class="mono">CI-green</span>, <span class="mono">operator-verified</span>, <span class="mono">complete</span> &mdash; never collapsed into one word.</li>
-      <li><strong>A review comment is not proof of a defect.</strong> The reviewer confirms every concern against the code as it exists at that commit.</li>
-      <li><strong>Commit-before-reveal evaluation.</strong> A hypothesis, its dataset, and its scoring are committed before out-of-sample data is revealed; holdout exposure is logged in an append-only ledger. No look-ahead, no exam re-use.</li>
-      <li><strong>The judge is part of the system.</strong> Evidence-judging scripts get their own adversarial tests, because a passing check can still certify the wrong claim.</li>
-    </ul>
-  </section>
-
-  <section id="failures">
-    <span class="section-num">07 — Failures that improved the system</span>
-    <h2>Four times it was wrong, and what changed</h2>
-    <p class="lede">A clean story that hid these would be less useful. Each changed a test, a gate, or an architecture rule.</p>
-
-    <div class="failure">
-      <div class="fx-head">
-        <span class="fx-idx">1</span>
-        <div>
-          <h3>An external API meant something other than what the code assumed</h3>
-          <div class="meta">incident SIR-DEF-001 · external-API semantic mismatch</div>
+    <section class="section shell" id="architecture">
+      <div class="section-head"><div class="section-label">03 · Architecture</div><h2>A deterministic spine. Models beside it.</h2><p class="section-intro">The architecture is intentionally asymmetrical. Code owns facts, state, risk, audit, and future execution planning. Models operate in a shadow research plane where they can classify, explain, challenge, and propose without gaining runtime authority.</p></div>
+      <div class="architecture" role="img" aria-label="Architecture diagram showing a deterministic system spine separated from a shadow AI research plane">
+        <div class="arch-legend"><span class="legend-key code">Deterministic code</span><span class="legend-key model">AI research plane</span><span class="legend-key human">Human promotion gate</span></div>
+        <div class="arch-body">
+          <div class="spine"><div class="arch-cap">Runtime authority · fail-closed</div><div class="arch-node on"><strong>Market evidence</strong><span>single source · provenance · freshness</span></div><div class="arch-node on"><strong>Canonical state</strong><span>market state · auction state · fixed contracts</span></div><div class="arch-node on"><strong>Paper intent and audit</strong><span>append-only history · identity · durable recovery</span></div><div class="arch-node wip"><strong>Risk kernel</strong><span>Phase 5 · draft branch · no ALLOW</span></div><div class="arch-node locked"><strong>Strategy, planning, simulation</strong><span>Phases 6–9 · not started</span></div><div class="arch-node locked"><strong>Human live-readiness review</strong><span>Phase 10 · required before any consequential release</span></div></div>
+          <div class="shadow"><div class="arch-cap">Shadow intelligence · no authority</div><div class="arch-node"><strong>Research models</strong><span>generate hypotheses and alternatives</span></div><div class="arch-node"><strong>Independent review agent</strong><span>checks live evidence, not builder claims</span></div><div class="arch-node"><strong>Documentation agent</strong><span>preserves decisions and institutional memory</span></div><p class="shadow-note">A model can disagree with the deterministic system. It cannot override it. Any useful proposal must survive a contract, evidence, review, and human promotion path.</p></div>
         </div>
       </div>
-      <p>The Sierra call for &ldquo;trading day date&rdquo; returns a date <em>value</em> (days-since-epoch style integer), not a <code>YYYYMMDD</code> integer. The exporter treated it as <code>YYYYMMDD</code> and rejected every telemetry post as an invalid trading day. Fail-closed, so nothing corrupt got through &mdash; but the operator gate was blocked.</p>
-      <dl class="kv">
-        <dt>Fix</dt><dd>PR #115 (merged 2026-07-23; fix commit <code>21e5692</code>)</dd>
-        <dt>Proof</dt><dd>72-assertion regression suite over date-value vectors; original operator replay gate re-run and passed after rebuild</dd>
-        <dt>Rule added</dt><dd>any external value involving date, time, units, lifecycle, identifiers, or status codes must be validated against headers, docs, a fixture, and where it matters a live probe. Compilation proves availability, not meaning.</dd>
-      </dl>
-    </div>
+    </section>
 
-    <div class="failure">
-      <div class="fx-head">
-        <span class="fx-idx">2</span>
-        <div>
-          <h3>A validator passed on a weak proxy</h3>
-          <div class="meta">incident SIR-134-001 · capture policy too loose</div>
-        </div>
+    <section class="section shell" id="method">
+      <div class="section-head"><div class="section-label">04 · Implementation method</div><h2>The work moves in inspectable slices.</h2><p class="section-intro">The core capability is not code generation. It is the operating layer around AI: deciding what matters, translating it into contracts, routing the right work, judging the evidence, and protecting the final decision.</p></div>
+      <div class="loop" aria-label="Implementation lifecycle"><div class="loop-step"><span class="n">01</span><strong>Frame</strong><p>Clarify the user, objective, constraints, and consequence.</p></div><div class="loop-step"><span class="n">02</span><strong>Contract</strong><p>Define behavior, boundaries, owner, and acceptance evidence.</p></div><div class="loop-step"><span class="n">03</span><strong>Build</strong><p>Implement the smallest useful, reviewable slice.</p></div><div class="loop-step"><span class="n">04</span><strong>Observe</strong><p>Compare expected and actual behavior with durable evidence.</p></div><div class="loop-step review"><span class="n">05</span><strong>Challenge</strong><p>Use independent review against the exact commit.</p></div><div class="loop-step"><span class="n">06</span><strong>Correct</strong><p>Turn gaps into tests, stronger judges, or explicit stops.</p></div><div class="loop-step gate"><span class="n">07</span><strong>Promote</strong><p>A human decides whether the evidence earns the next state.</p></div></div>
+      <div style="margin-top:2rem;overflow-x:auto"><table class="role-table"><thead><tr><th>Role</th><th>What it owns</th><th>What it cannot do</th></tr></thead><tbody><tr><td>Chien / operator</td><td>Problem framing, product direction, architecture, model routing, acceptance criteria, privacy, review, and final promotion.</td><td>Cannot treat persuasive model output as evidence.</td></tr><tr><td>Builder agent</td><td>Scoped implementation, tests, documentation, and exact-commit handoff.</td><td>Cannot self-approve consequential work.</td></tr><tr><td>Review agent</td><td>Independent inspection of code, CI, acceptance criteria, and unresolved threads.</td><td>Cannot rely on the builder’s summary as proof.</td></tr><tr><td>Deterministic system</td><td>Facts, state transitions, risk rules, audit records, and fail-closed behavior.</td><td>Cannot infer success when evidence is missing.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="section shell" id="failures">
+      <div class="section-head"><div class="section-label">05 · Failure as evidence</div><h2>The strongest proof is what changed after something went wrong.</h2><p class="section-intro">A polished case study should not hide the seams. These incidents show the system learning: each one sharpened a test, validator, contract, or review rule.</p></div>
+      <div class="failures">
+        <article class="failure"><span class="num">INCIDENT 01</span><h3>An API value meant something different than assumed.</h3><p>The integration compiled, but the external date value was interpreted with the wrong semantics. The system rejected all telemetry rather than accepting corrupt input.</p><dl><dt>Changed</dt><dd>72-assertion regression coverage and a rule to verify external semantics against docs, fixtures, and live probes.</dd><dt>Signal</dt><dd>Availability is not understanding.</dd></dl></article>
+        <article class="failure"><span class="num">INCIDENT 02</span><h3>A capture policy accepted a weak proxy.</h3><p>Samples appeared to advance while the replay clock had not moved. The validator caught the mismatch and exposed a loose evidence-capture rule.</p><dl><dt>Changed</dt><dd>Strictly later chart time became required before a sample could satisfy the gate.</dd><dt>Signal</dt><dd>A passing check must prove the exact claim.</dd></dl></article>
+        <article class="failure"><span class="num">INCIDENT 03</span><h3>The evidence judge needed its own adversarial tests.</h3><p>Existence checks and timing assumptions could certify artifacts that did not actually establish the promised behavior.</p><dl><dt>Changed</dt><dd>Assertions became bound to precise artifacts, chronology, hashes, and a paused-first invariant.</dd><dt>Signal</dt><dd>Test the tester.</dd></dl></article>
+        <article class="failure"><span class="num">INCIDENT 04</span><h3>“Executed” was mistaken for “passed.”</h3><p>A validation command could run, exit non-zero, and still appear complete. Independent review blocked the work before promotion.</p><dl><dt>Changed</dt><dd>Completion now requires the result—not merely the presence—of validation evidence.</dd><dt>Signal</dt><dd>Review is part of the product.</dd></dl></article>
       </div>
-      <p>A capture step recorded three &ldquo;market advancing&rdquo; samples that all carried the <strong>same bar-start timestamp</strong> as the paused baseline &mdash; the replay clock had not moved. The validator correctly rejected it, which exposed that the capture policy itself was too permissive.</p>
-      <dl class="kv">
-        <dt>Fix</dt><dd>PR #142 (merged 2026-08-03; fix commit <code>2680236</code>). Playing-state writes now require a strictly-later chart time; same-bar heartbeats return <code>waiting_chart_time_advance</code> instead of consuming a capture slot.</dd>
-        <dt>Lesson</dt><dd>&ldquo;the check passed&rdquo; is not the same as &ldquo;the check proved the claim.&rdquo; This became cross-cutting doctrine.</dd>
-      </dl>
-    </div>
+    </section>
 
-    <div class="failure">
-      <div class="fx-head">
-        <span class="fx-idx">3</span>
-        <div>
-          <h3>The evidence judge itself needed hardening</h3>
-          <div class="meta">Phase 3 operator validation · 2026-08-08 &rarr; 2026-08-24</div>
-        </div>
+    <section class="section shell" id="status">
+      <div class="section-head"><div class="section-label">06 · Current truth</div><h2>Progress is reported without collapsing the boundaries.</h2><p class="section-intro">This public view was reconciled against the private project’s current status, GitHub issue state, draft pull request, and CI on October 4, 2026. It describes engineering progress—not operational readiness.</p></div>
+      <div class="status-panel"><div class="status-summary"><div class="asof">As of 2026-10-04 · America/Los_Angeles</div><div class="big">Phase 5</div><p><strong>In progress and deliberately unmerged.</strong> The protected `main` branch still holds a fail-closed RiskKernel stub. The draft branch contains independently accepted slices and active corrections, but it is not merge-ready.</p><p><strong>Hard boundary:</strong> no `ALLOW`, no live brokerage execution, no profitability claim, and no work represented as complete beyond its evidence state.</p></div>
+        <div class="phase-list"><div class="phase"><span class="phase-name">Phase 0</span><div><strong>Build law and canonical contracts</strong><small>Scope, architecture, governance, definition of done</small></div><span class="state done">Complete</span></div><div class="phase"><span class="phase-name">Phase 1–2</span><div><strong>Source data and evidence packets</strong><small>Telemetry, validation, canonical normalization</small></div><span class="state done">Complete</span></div><div class="phase"><span class="phase-name">Phase 3</span><div><strong>Deterministic market and auction state</strong><small>Replay evidence and bounded v1 classifiers</small></div><span class="state done">Complete</span></div><div class="phase"><span class="phase-name">Phase 4</span><div><strong>Paper intent and append-only audit</strong><small>Identity, idempotency, durable recovery</small></div><span class="state done">Complete</span></div><div class="phase"><span class="phase-name">Phase 5</span><div><strong>Deterministic risk kernel</strong><small>Draft branch, reviewed micro-slices, corrections still active</small></div><span class="state wip">In progress</span></div><div class="phase"><span class="phase-name">Phase 6–10</span><div><strong>Strategy through live-readiness review</strong><small>Locked behind Phase 5 progression</small></div><span class="state">Not started</span></div></div>
       </div>
-      <p>A sequence of independent reviews feeding PR #151 repeatedly found that a passing operator script could still certify the wrong thing: a &ldquo;paused&rdquo; proof that a fast replay could satisfy while still moving; a &ldquo;first accepted packet&rdquo; proxy weaker than the next packet; semantic-attestation files that could pass an existence check while being empty.</p>
-      <dl class="kv">
-        <dt>Consequence</dt><dd>an <strong>exact-claim doctrine</strong> &mdash; the judge must bind each assertion to the specific artifact (chart time, bar indices, SHA-256) it claims to prove; a paused-first machine invariant; transition-window / race analysis added to the pre-flight checklist; immutable evidence and chronology requirements.</dd>
-        <dt>Lesson</dt><dd>in a safety-critical system, the test of the tester can matter as much as the test of the product.</dd>
-      </dl>
-    </div>
+    </section>
 
-    <div class="failure">
-      <div class="fx-head">
-        <span class="fx-idx">4</span>
-        <div>
-          <h3>&ldquo;Executed&rdquo; is not &ldquo;passed&rdquo; &mdash; caught in review this month</h3>
-          <div class="meta">issue #179 / PR #182 · in progress</div>
-        </div>
-      </div>
-      <p>While building the model-agnostic review tooling, the independent review agent blocked the PR: the new evidence gate recorded that a validation command had <em>run</em>, but a run that <strong>exited non-zero</strong> could still satisfy &ldquo;review context complete&rdquo; and allow a <code>COMPLETE</code> status.</p>
-      <dl class="kv">
-        <dt>Status</dt><dd>open, being fixed on the same issue before any dependent work starts.</dd>
-        <dt>Why it&rsquo;s here</dt><dd>it shows the review process catching a subtle evidence-integrity gap in real time. That is the process working, not failing.</dd>
-      </dl>
-    </div>
-  </section>
+    <section class="section shell" id="roles">
+      <div class="section-head"><div class="section-label">07 · Employer relevance</div><h2>What this says about how I implement AI.</h2><p class="section-intro">The trading domain makes risk visible, but the operating capabilities transfer directly to AI implementation, technical solutions, onboarding, product operations, and customer-facing systems work.</p></div>
+      <div class="cap-grid"><article class="capability"><div class="icon">01</div><h3>Discovery and scoping</h3><p>I turn a broad goal into users, constraints, risks, decision rights, and a concrete definition of success.</p></article><article class="capability"><div class="icon">02</div><h3>Requirements translation</h3><p>I convert ambiguity into contracts, acceptance criteria, dependency order, and explicit exclusions.</p></article><article class="capability"><div class="icon">03</div><h3>Architecture and integration</h3><p>I design around data quality, authority boundaries, observability, failure modes, and ownership.</p></article><article class="capability"><div class="icon">04</div><h3>AI-tool orchestration</h3><p>I route research, building, review, and documentation to specialized tools while retaining accountability.</p></article><article class="capability"><div class="icon">05</div><h3>Validation and diagnosis</h3><p>I compare expected and actual behavior using tests, logs, fixtures, CI, visual evidence, and human checks.</p></article><article class="capability"><div class="icon">06</div><h3>Enablement and handoff</h3><p>I make status, limitations, next actions, and ownership legible to technical and nontechnical stakeholders.</p></article></div>
+    </section>
 
-  <section id="proven">
-    <span class="section-num">08 — Proven vs. not</span>
-    <h2>Where things actually stand</h2>
-    <p class="lede">As of 2026-08-26. Legend: <span class="m m-y">Y</span> yes &nbsp; <span class="m m-p">~</span> partial &nbsp; <span class="m m-n">N</span> no &nbsp; <span class="m m-x">&middot;</span> not applicable.</p>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr><th>Capability</th><th>doc</th><th>impl</th><th>tests</th><th>CI</th><th>operator</th><th>complete</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Sierra telemetry exporter (historical replay)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td></tr>
-          <tr><td>Sierra event &rarr; Evidence Packet (Phase 2)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-y">Y</span></td></tr>
-          <tr><td>Deterministic MarketState / AuctionState v1 (Phase 3)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-y">Y</span></td></tr>
-          <tr><td>PaperIntent + append-only audit + paper broker (Phase 4)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-p">~</span></td></tr>
-          <tr><td>LLM audit-correlation fields reserved (nullable, no client)</td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-y">Y</span></td><td><span class="m m-x">&middot;</span></td><td><span class="m m-y">Y</span></td></tr>
-          <tr><td>Deterministic RiskKernel (Phase 5)</td><td><span class="m m-y">Y</span></td><td><span class="m m-p">~</span></td><td><span class="m m-p">~</span></td><td><span class="m m-p">~</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
-          <tr><td>StrategyCandidate / trend-pullback (Phase 6)</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
-          <tr><td>Execution planner, sim sniper, replay validation (Phase 7&ndash;9)</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
-          <tr><td>Shadow language-model reviewer</td><td><span class="m m-y">Y</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td><td><span class="m m-n">N</span></td></tr>
-          <tr><td><strong>Positive trading expectancy</strong></td><td colspan="6" style="color:var(--no)">Not attempted &mdash; explicitly out of scope until Phase 9.</td></tr>
-          <tr><td><strong>Live brokerage execution</strong></td><td colspan="6" style="color:var(--no)">Prohibited until a signed Phase 10 review that does not yet exist.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:.86rem;color:var(--muted)"><span class="m m-p">~</span> operator = specific gates within the phase were run by the human; the whole phase has no single sign-off.</p>
-  </section>
+    <section class="section shell" id="evidence">
+      <div class="section-head"><div class="section-label">08 · Evidence paths</div><h2>Read at the depth you need.</h2><p class="section-intro">The public repository is intentionally layered: a recruiter can scan the result, an executive can understand the decisions, and a technical reviewer can inspect the method and its limitations.</p></div>
+      <div class="proof-grid"><article class="proof"><span class="proof-type">Recruiter · 60 seconds</span><h3>This visual case study</h3><p>Problem, ownership, architecture, proof boundaries, and role fit.</p><a class="text-link" href="#scan">Return to the executive scan</a></article><article class="proof"><span class="proof-type">Hiring manager · 5 minutes</span><h3>Full markdown edition</h3><p>The deeper written account, including evolution, failures, status, technology, and selected evidence.</p><a class="text-link" href="PUBLIC-CASE-STUDY.md">Read the full case study</a></article><article class="proof"><span class="proof-type">Technical reviewer</span><h3>Implementation walkthrough</h3><p>The requirements, integration, evidence, human-gate, and learning loop in a reusable public-safe form.</p><a class="text-link" href="docs/IMPLEMENTATION-WALKTHROUGH.md">Inspect the walkthrough</a></article><article class="proof"><span class="proof-type">Risk and trust</span><h3>Validation gates</h3><p>How the system handles scope, identity, dependencies, evidence, privacy, consequence, and release.</p><a class="text-link" href="docs/VALIDATION-AND-RISK-GATES.md">Review the gates</a></article><article class="proof"><span class="proof-type">Transparency</span><h3>Attribution and limits</h3><p>What AI tools contributed, what Chien owned, and which conclusions the work does not support.</p><a class="text-link" href="docs/ATTRIBUTION-AND-LIMITATIONS.md">Read the attribution</a></article><article class="proof"><span class="proof-type">Source and history</span><h3>Public repository</h3><p>Versioned public copy, maintenance notes, and the inspectable source for this page.</p><a class="text-link" href="https://github.com/heyitschien/autonomous-lab-case-study">Open the repository</a></article></div>
+    </section>
 
-  <section id="stack">
-    <span class="section-num">09 — Stack</span>
-    <h2>Tools</h2>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
-        <tbody>
-          <tr><td>Market-data sensor</td><td>Sierra Chart + custom ACSIL (C++) telemetry study</td></tr>
-          <tr><td>Contracts / validation</td><td>Node.js, Zod fail-closed schemas</td></tr>
-          <tr><td>Deterministic brain</td><td>Node.js &mdash; SourceEvent, Evidence Packet, MarketState, AuctionState</td></tr>
-          <tr><td>Audit / paper layer</td><td>Node.js, append-only event log with semantic idempotency and durable-write recovery</td></tr>
-          <tr><td>Earlier product (Coach, frozen)</td><td>Pine Script v6, Express on Railway, Neon Postgres, Chrome MV3 + React + TypeScript</td></tr>
-          <tr><td>Evaluation</td><td>Custom eval architecture &mdash; EvalPlan, immutable dataset manifest, holdout ledger, R-multiple scoring, counterfactual separation</td></tr>
-          <tr><td>Process</td><td>GitHub (issues, PRs, CI, exact-SHA evidence), Linear, a persistent multi-agent coordination thread</td></tr>
-          <tr><td>AI agents</td><td>In-IDE builder; separate independent-review agent; documentation agent</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+    <section class="closing shell"><div class="closing-panel"><p class="eyebrow">The takeaway</p><h2>AI can accelerate the work. Accountability still needs an owner.</h2><p>This project represents how I approach implementation roles: learn the workflow, make the boundaries explicit, connect the right tools, validate what actually happened, communicate in plain English, and remain responsible for the result.</p><div class="hero-actions"><a class="button primary" href="https://github.com/heyitschien">Explore my GitHub</a><a class="button" href="https://www.linkedin.com/in/chien-escalera-duong/">Connect on LinkedIn</a><a class="button" href="mailto:heyitschien@gmail.com">Email Chien</a></div></div></section>
+  </main>
 
-  <section id="lessons">
-    <span class="section-num">10 — Transferable lessons</span>
-    <h2>What carries beyond trading</h2>
-    <ul class="clean">
-      <li><strong>Evidence quality is the ceiling on AI usefulness.</strong> Once the deterministic inputs were clean, prompt engineering stopped being the bottleneck.</li>
-      <li><strong>Separate intelligence from authority.</strong> A model becomes more useful when given less irreversible power &mdash; it can propose freely because it cannot act.</li>
-      <li><strong>Green checks are not proof.</strong> Track the six truth states separately and never collapse them.</li>
-      <li><strong>Test the tester.</strong> Any script that certifies a claim needs adversarial tests of its own.</li>
-      <li><strong>Independent review beats self-report</strong> &mdash; including for prose. Documentation can broaden scope just like code.</li>
-      <li><strong>A trustworthy notebook precedes a trustworthy strategy.</strong> The audit path was hardened to safety-critical standards before any strategy code was written.</li>
-      <li><strong>Directing AI-assisted engineering is a real skill.</strong> The human job moved up: from writing every line to governing intent, architecture, evidence, and promotion.</li>
-    </ul>
-  </section>
-
-  <section id="evidence">
-    <span class="section-num">11 — Selected evidence</span>
-    <h2>Traceable to commits</h2>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>Milestone</th><th>Evidence</th><th class="num-col">Merged</th></tr></thead>
-        <tbody>
-          <tr><td>Coach shipped and frozen</td><td class="mono">reflection package · main 67c12de</td><td class="num-col">2026-05-23</td></tr>
-          <tr><td>No LLM in the execution chain</td><td class="mono">ADR-004</td><td class="num-col">2026-07-08</td></tr>
-          <tr><td>Sierra as sole autonomous data source</td><td class="mono">ADR-005 · issue #135</td><td class="num-col">2026-07-22</td></tr>
-          <tr><td>Telemetry exporter + first API-semantics incident</td><td class="mono">PR #115</td><td class="num-col">2026-07-23</td></tr>
-          <tr><td>Bounded capture / weak-proxy incident fix</td><td class="mono">PR #142</td><td class="num-col">2026-08-03</td></tr>
-          <tr><td>Sierra events &rarr; Evidence Packet (Phase 2)</td><td class="mono">PR #149 · issue #76</td><td class="num-col">2026-08-05</td></tr>
-          <tr><td>Canonical evaluation architecture</td><td class="mono">PR #158</td><td class="num-col">2026-08-10</td></tr>
-          <tr><td>Models as scientists, not traders</td><td class="mono">PR #160 · issues #156 / #159</td><td class="num-col">2026-08-12</td></tr>
-          <tr><td>MarketState / AuctionState v1 (Phase 3)</td><td class="mono">PR #151 + #168 · issue #77</td><td class="num-col">2026-08-20</td></tr>
-          <tr><td>PaperIntent + audit + paper broker (Phase 4)</td><td class="mono">PR #170 + #175 · issue #78</td><td class="num-col">2026-08-22 / 25</td></tr>
-          <tr><td>Deterministic RiskKernel (Phase 5)</td><td class="mono">issue #79 · PR #176 draft</td><td class="num-col">in progress</td></tr>
-          <tr><td>Multi-agent coordination protocol</td><td class="mono">issue #150</td><td class="num-col">ongoing</td></tr>
-          <tr><td>Living case-study system</td><td class="mono">issue #164 · PR #173</td><td class="num-col">ongoing</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:.86rem;color:var(--muted)">Links resolve inside the private repository. During an interview they are shown by screen-share; the public edition keeps only what stands on its own.</p>
-  </section>
-
-  <section id="gate">
-    <span class="section-num">12 — Public boundary</span>
-    <h2>What this edition publishes</h2>
-    <p>The source repository is private, proprietary, and co-owned. This public copy explains the engineering method without transferring or exposing the private source.</p>
-    <ul class="checklist">
-      <li><strong>Sanitised.</strong> No credentials, tokens, secrets, machine-local paths, broker or account identifiers, or third-party personal data.</li>
-      <li><strong>No edge leakage.</strong> No strategy parameters, trigger thresholds, or order-flow logic. High-level names only.</li>
-      <li><strong>Bounded claims.</strong> Nothing implies profitability, positive expectancy, or live execution; capability states remain explicit.</li>
-      <li><strong>Private evidence separated.</strong> Internal issue, PR, and commit references appear as labels only, without private links.</li>
-      <li><strong>Public destination.</strong> This rendered page and its markdown source live in the public case-study repository.</li>
-    </ul>
-  </section>
-
-  <div class="footnote">
-    <p><strong>Author&rsquo;s note.</strong> &ldquo;The operator&rdquo; describes the role accurately: not every line of this system was hand-written by one person. One person set the direction and architecture, defined the evidence and safety standards, ran the independent-review model, performed the manual validations, and made every promotion decision &mdash; while AI agents did much of the implementation and a separate agent audited it. The honest version of this story is more interesting than &ldquo;AI built a trading bot,&rdquo; and it is the version an interviewer can trace back to commits.</p>
-    <p class="mono">Historical source snapshot reconciled 2026-08-26; public export refreshed 2026-09-21. Private engineering evidence available by screen-share during an interview. Not financial advice.</p>
-  </div>
-
-</div>
+  <footer><div class="shell footer-row"><div>© 2026 Chien Escalera Duong · Los Angeles, California</div><div class="footer-links"><a href="README.md">Repository guide</a><a href="docs/CASE-STUDY-CONTENT-AND-DESIGN-BRIEF.md">Content and design brief</a><span>Not financial advice</span></div></div></footer>
 </body>
 </html>

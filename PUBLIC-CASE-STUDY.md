@@ -1,6 +1,6 @@
 # Autonomous Lab — Engineering Case Study (public edition)
 
-> **Status:** Living / in progress — build is at **Phase 5 of 10** as of **2026-08-26**.
+> **Status:** Living / in progress — build is at **Phase 5 of 10** as of **2026-10-04**.
 > **Scope of this document:** process, architecture, and engineering discipline. It is a curated, sanitized export.
 > **Not included:** trading edge, strategy parameters, credentials, account data, machine paths.
 > **Claims rule:** every factual claim is traceable to private engineering evidence, **or** is explicitly labelled *designed / in progress / not yet proven*.
@@ -155,15 +155,21 @@ During Phase 3 operator validation, a sequence of independent reviews (logged ac
 - **Consequence:** an **exact-claim doctrine** — the judge must bind each assertion to the specific artifact (chart time, bar indices, SHA-256) it claims to prove; a "paused-first" machine invariant; transition-window / race analysis added to the pre-flight checklist; immutable evidence and chronology requirements.
 - **Lesson:** in a safety-critical system, the test of the tester can matter as much as the test of the product.
 
-### 5.4 "Executed" is not "passed" — caught in review, this month
+### 5.4 "Executed" is not "passed" — caught before promotion
 
-While building the model-agnostic review tooling (`issue #179` *(private evidence)*, PR `#182` *(private evidence)*, in progress), the independent review agent blocked the PR: the new evidence gate recorded that a validation command had *run*, but a run that **exited non-zero** could still satisfy "review context complete" and allow a `COMPLETE` status. Executed ≠ passed.
+While building the model-agnostic review tooling (`issue #179` *(private evidence)*, PR `#182` *(private evidence)*), the independent review agent blocked the PR: the new evidence gate recorded that a validation command had *run*, but a run that **exited non-zero** could still satisfy "review context complete" and allow a `COMPLETE` status. Executed ≠ passed.
 
-- **Status:** open, being fixed on the same issue before any dependent work starts. Included here precisely because it shows the review process catching a subtle evidence-integrity gap in real time — that is the process working, not failing.
+- **Outcome:** the correction was independently reviewed and merged on 2026-08-27. The incident remains here because it shows the review process catching a subtle evidence-integrity gap before promotion.
 
 ---
 
-## 6. What is proven vs. not (as of 2026-08-26)
+## 6. What is proven vs. not (as of 2026-10-04)
+
+The current public truth has two layers: protected private `main` still contains
+the fail-closed RiskKernel stub; draft PR #176 contains many accepted Phase-5
+micro-slices plus active corrections. Its authoritative lab CI was green at the
+October 4 snapshot, but the pull request remains unmerged, not merge-ready, and
+subject to exact-commit independent review. **No `ALLOW` path is claimed.**
 
 | Capability | documented | implemented | tests green | CI green | operator-verified | complete |
 | --- | :--: | :--: | :--: | :--: | :--: | :--: |
@@ -172,7 +178,7 @@ While building the model-agnostic review tooling (`issue #179` *(private evidenc
 | Deterministic MarketState / AuctionState v1 (Phase 3) | ✅ | ✅ | ✅ | ✅ | partial | ✅ (v1) |
 | PaperIntent + append-only audit + paper broker (Phase 4) | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ (first slice) |
 | LLM audit-correlation fields reserved (nullable, no client) | ✅ | ✅ | ✅ | ✅ | n/a | ✅ |
-| Deterministic RiskKernel (Phase 5) | ✅ | partial | partial | partial | ❌ | ❌ |
+| Deterministic RiskKernel (Phase 5, draft branch only) | ✅ | partial | partial | partial | partial | ❌ |
 | StrategyCandidate / trend-pullback (Phase 6) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Execution planner, sim sniper, replay validation (Phase 7–9) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Shadow language-model reviewer | ✅ (spec) | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -248,4 +254,4 @@ Public-safety checks applied to this export:
 
 I use "the operator" throughout to describe my role accurately: I did not hand-write every line of this system. I set the direction and architecture, defined the evidence and safety standards, ran the independent-review model, performed the manual validations, and made every promotion decision — while AI agents did much of the implementation and a separate agent audited it. The honest version of this story is more interesting than "AI built a trading bot", and it is the version an interviewer can trace back to commits.
 
-*Historical source snapshot reconciled 2026-08-26; public export refreshed 2026-09-21. Not financial advice.*
+*Private source status reconciled 2026-10-04; public export refreshed 2026-10-04. Not financial advice.*
