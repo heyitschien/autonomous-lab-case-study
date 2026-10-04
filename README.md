@@ -1,61 +1,66 @@
-# Autonomous Systems Case Study
+# Autonomous Lab · AI Implementation Case Study
 
-## A public-safe implementation walkthrough
+**[Open the visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full markdown edition](PUBLIC-CASE-STUDY.md)**
 
-**[Open the rendered case study →](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full markdown edition →](PUBLIC-CASE-STUDY.md)**
-
-This repository describes how I direct AI-assisted development of a complex
-systems-research project without publishing private strategy, credentials,
-financial data, collaborator information, or live operational details.
-
-The useful story is the working method:
+How I turned an ambiguous, high-consequence systems idea into a governed,
+testable AI-assisted engineering program—with deterministic authority,
+independent review, and human approval gates.
 
 ```text
-ambiguous objective
-→ bounded requirements
-→ integration sequence
-→ observable validation
-→ risk review
-→ human decision
-→ documented learning
+frame → contract → build → observe → challenge → correct → human promotion
 ```
 
-## Five-minute employer scan
+## Current public status
 
-### What it demonstrates
+**Reconciled 2026-10-04:** Phase 5 of 10 is in progress. The protected private
+`main` branch still has a fail-closed RiskKernel stub. Draft PR #176 contains
+independently accepted micro-slices and active corrections, but it remains
+unmerged and is not merge-ready. There is no `ALLOW`, no live brokerage
+execution, no positive-expectancy claim, and no representation that Phases
+6–10 have started.
 
-- Turning an unclear systems goal into bounded issues and acceptance criteria
-- Sequencing work across research, implementation, and integration boundaries
+This distinction is intentional: `implemented`, `tests green`, `CI green`,
+`operator verified`, and `complete` are separate proof states.
+
+## What the project demonstrates
+
+- Translating an unclear objective into requirements, contracts, owners, and
+  acceptance evidence
+- Sequencing data, state, audit, risk, evaluation, and release dependencies
+- Coordinating AI builders and independent reviewers without giving models
+  runtime authority
 - Comparing expected and actual behavior with reproducible evidence
-- Keeping agent identity, reporting, ownership, and escalation visible
-- Requiring human review before consequential action
-- Converting implementation friction into reusable documentation
+- Converting failures into regression tests, stronger judges, and safer gates
+- Communicating complex architecture in plain English for mixed stakeholders
 
-### What I did
+## What I owned
 
-I directed the problem framing, requirements, architecture decisions, model
-and tool routing, acceptance criteria, evidence review, and final decisions.
-AI tools accelerated research, alternatives, implementation, and documentation;
-they were not treated as an independent authority.
+I directed problem framing, product direction, requirements, architecture,
+model and tool routing, acceptance criteria, privacy boundaries, evidence
+review, and final promotion decisions. AI tools accelerated research,
+implementation, testing, critique, and documentation; they were not treated as
+an independent authority.
 
-### Start here
+## Choose your reading depth
 
-1. [Rendered public case study](https://heyitschien.github.io/autonomous-lab-case-study/)
-2. [Full public case-study markdown](PUBLIC-CASE-STUDY.md)
-3. [Implementation walkthrough](docs/IMPLEMENTATION-WALKTHROUGH.md)
-4. [Validation and risk gates](docs/VALIDATION-AND-RISK-GATES.md)
-5. [Workflow diagram](docs/WORKFLOW-DIAGRAM.md)
-6. [Attribution and limitations](docs/ATTRIBUTION-AND-LIMITATIONS.md)
+1. [Visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)
+   — recruiter and executive scan
+2. [Full public case study](PUBLIC-CASE-STUDY.md) — deeper engineering narrative
+3. [Implementation walkthrough](docs/IMPLEMENTATION-WALKTHROUGH.md) — reusable
+   implementation method
+4. [Validation and risk gates](docs/VALIDATION-AND-RISK-GATES.md) — evidence and
+   stop conditions
+5. [Workflow diagram](docs/WORKFLOW-DIAGRAM.md) — public-safe process map
+6. [Attribution and limitations](docs/ATTRIBUTION-AND-LIMITATIONS.md) — honest
+   AI contribution and claim boundaries
+7. [Content and design brief](docs/CASE-STUDY-CONTENT-AND-DESIGN-BRIEF.md) —
+   maintenance source for future public updates
 
-## Scope and safety
+## Public boundary
 
-This is a public-safe process case study, not a live operations report or
-financial product. It does not claim banking implementation, enterprise
-financial systems employment, production trading ownership, or verified
-financial performance. Details that could expose private intellectual
-property, collaborators, credentials, or operational security are intentionally
-omitted.
-
-The same implementation habits transfer to customer-facing work:
-discover the workflow, structure requirements, configure and integrate,
-validate, enable the user, document the handoff, and improve the next run.
+This is a process and implementation case study, not a financial product or a
+live operations report. It does not expose strategy parameters, credentials,
+account data, machine paths, collaborator-sensitive information, or private
+source. It does not claim production trading ownership, banking or regulatory
+implementation experience, verified financial performance, or automatic
+subject-matter authority.
