@@ -1,3 +1,14 @@
+---
+layout: case-study-doc
+title: Attribution and Limitations
+eyebrow: Transparency · Ownership and boundaries
+description: A direct account of what AI tools contributed, what Chien owned, and what this public case study does—and does not—support.
+audience: Recruiters, hiring managers, and reviewers
+reading_time: 3 minute read
+permalink: /attribution-and-limitations/
+source_url: https://github.com/heyitschien/autonomous-lab-case-study/blob/main/docs/ATTRIBUTION-AND-LIMITATIONS.md
+---
+
 # Attribution and Limitations
 
 ## Attribution

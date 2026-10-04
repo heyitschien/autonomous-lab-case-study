@@ -1,3 +1,14 @@
+---
+layout: case-study-doc
+title: Implementation Walkthrough
+eyebrow: Technical reviewer · Transferable method
+description: A plain-English walkthrough of the requirements, integration sequence, evidence model, human decision boundary, and learning loop behind the project.
+audience: Technical reviewers and implementation teams
+reading_time: 4 minute read
+permalink: /implementation-walkthrough/
+source_url: https://github.com/heyitschien/autonomous-lab-case-study/blob/main/docs/IMPLEMENTATION-WALKTHROUGH.md
+---
+
 # Implementation Walkthrough
 
 ## Context

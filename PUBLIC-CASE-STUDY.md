@@ -1,3 +1,14 @@
+---
+layout: case-study-doc
+title: Autonomous Lab — Engineering Case Study
+eyebrow: Hiring manager · Full project narrative
+description: The deeper engineering account—how the system evolved, where authority lives, what failed, what is proven, and what remains deliberately unfinished.
+audience: Hiring managers and technical leaders
+reading_time: 12–15 minute read
+permalink: /full-case-study/
+source_url: https://github.com/heyitschien/autonomous-lab-case-study/blob/main/PUBLIC-CASE-STUDY.md
+---
+
 # Autonomous Lab — Engineering Case Study (public edition)
 
 > **Status:** Living / in progress — build is at **Phase 5 of 10** as of **2026-10-04**.

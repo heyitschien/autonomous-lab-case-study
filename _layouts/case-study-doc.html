@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07140f">
+  <meta name="description" content="{{ page.description | default: site.description | escape }}">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ page.title | escape }} · Autonomous Lab">
+  <meta property="og:description" content="{{ page.description | default: site.description | escape }}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <title>{{ page.title | escape }} · Autonomous Lab · Chien Escalera Duong</title>
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2210%22 fill=%22%2307140f%22/><text x=%2232%22 y=%2241%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2228%22 font-weight=%22700%22 fill=%22%238be0b0%22>CE</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/case-study-doc.css' | relative_url }}">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to article</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="identity" href="{{ '/' | relative_url }}" aria-label="Autonomous Lab case study home">
+        <span class="monogram">CE</span>
+        <span><strong>Chien Escalera Duong</strong><small>AI implementation · technical solutions</small></span>
+      </a>
+      <nav aria-label="Document navigation">
+        <a href="{{ '/' | relative_url }}">Visual case study</a>
+        <a class="repo-link" href="https://github.com/heyitschien/autonomous-lab-case-study">View repository</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="document-hero">
+      <div class="document-hero-inner">
+        <a class="back-link" href="{{ '/' | relative_url }}"><span aria-hidden="true">←</span> Back to the visual case study</a>
+        <p class="eyebrow">{{ page.eyebrow | default: 'Autonomous Lab · Supporting evidence' }}</p>
+        <h1>{{ page.title }}</h1>
+        {% if page.description %}<p class="deck">{{ page.description }}</p>{% endif %}
+        <div class="document-meta">
+          <span>{{ page.audience | default: 'Employer reading path' }}</span>
+          <span>{{ page.reading_time | default: '5–8 minute read' }}</span>
+          <span>Public-safe edition</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="article-shell">
+      <aside class="reading-rail" aria-label="Reading context">
+        <span class="rail-label">Reading note</span>
+        <p>This page is rendered from the repository’s Markdown source so it stays maintainable, versioned, and pleasant to read.</p>
+        <a href="{{ page.source_url | default: 'https://github.com/heyitschien/autonomous-lab-case-study' }}">Inspect the source</a>
+      </aside>
+      <article class="prose">
+        {{ content }}
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div><strong>Autonomous Lab</strong><span>AI-assisted engineering with deterministic authority.</span></div>
+      <div class="footer-actions">
+        <a href="{{ '/' | relative_url }}">Visual case study</a>
+        <a href="https://github.com/heyitschien">GitHub profile</a>
+        <a href="https://www.linkedin.com/in/chien-escalera-duong/">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    const diagrams = [...document.querySelectorAll('code.language-mermaid')];
+    if (diagrams.length) {
+      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+      diagrams.forEach((block) => {
+        const diagram = document.createElement('div');
+        diagram.className = 'mermaid';
+        diagram.textContent = block.textContent;
+        const wrapper = block.closest('.highlighter-rouge') || block.parentElement;
+        wrapper.replaceWith(diagram);
+      });
+      mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'strict', themeVariables: { background: '#07140f', primaryColor: '#10281d', primaryTextColor: '#f3f6ef', primaryBorderColor: '#79d6a3', secondaryColor: '#0b1d15', tertiaryColor: '#17261f', mainBkg: '#0b1d15', clusterBkg: '#091912', clusterBorder: '#315741', edgeLabelBackground: '#0b1d15', lineColor: '#79d6a3', textColor: '#dce7e0', fontFamily: 'Manrope' } });
+      await mermaid.run({ nodes: [...document.querySelectorAll('.mermaid')] });
+    }
+  </script>
+</body>
+</html>
