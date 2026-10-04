@@ -1,0 +1,10 @@
+title: Autonomous Lab Case Study
+description: A public engineering case study about safety-first AI implementation, deterministic authority, and evidence-led delivery.
+url: https://heyitschien.github.io
+baseurl: /autonomous-lab-case-study
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+permalink: pretty
+

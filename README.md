@@ -1,6 +1,6 @@
 # Autonomous Lab · AI Implementation Case Study
 
-**[Open the visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full markdown edition](PUBLIC-CASE-STUDY.md)**
+**[Open the visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full case study](https://heyitschien.github.io/autonomous-lab-case-study/full-case-study/)**
 
 How I turned an ambiguous, high-consequence systems idea into a governed,
 testable AI-assisted engineering program—with deterministic authority,
@@ -45,14 +45,15 @@ an independent authority.
 
 1. [Visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)
    — recruiter and executive scan
-2. [Full public case study](PUBLIC-CASE-STUDY.md) — deeper engineering narrative
-3. [Implementation walkthrough](docs/IMPLEMENTATION-WALKTHROUGH.md) — reusable
-   implementation method
-4. [Validation and risk gates](docs/VALIDATION-AND-RISK-GATES.md) — evidence and
-   stop conditions
+2. [Full public case study](https://heyitschien.github.io/autonomous-lab-case-study/full-case-study/)
+   — deeper engineering narrative
+3. [Implementation walkthrough](https://heyitschien.github.io/autonomous-lab-case-study/implementation-walkthrough/)
+   — reusable implementation method
+4. [Validation and risk gates](https://heyitschien.github.io/autonomous-lab-case-study/validation-and-risk-gates/)
+   — evidence and stop conditions
 5. [Workflow diagram](docs/WORKFLOW-DIAGRAM.md) — public-safe process map
-6. [Attribution and limitations](docs/ATTRIBUTION-AND-LIMITATIONS.md) — honest
-   AI contribution and claim boundaries
+6. [Attribution and limitations](https://heyitschien.github.io/autonomous-lab-case-study/attribution-and-limitations/)
+   — honest AI contribution and claim boundaries
 7. [Content and design brief](docs/CASE-STUDY-CONTENT-AND-DESIGN-BRIEF.md) —
    maintenance source for future public updates
 

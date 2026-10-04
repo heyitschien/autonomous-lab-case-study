@@ -1,3 +1,14 @@
+---
+layout: case-study-doc
+title: Validation and Risk Gates
+eyebrow: Risk and trust · Operating controls
+description: The review gates that keep scope, evidence, privacy, consequential actions, and release decisions visible—and stop the system when proof is missing.
+audience: Risk, operations, and technical leaders
+reading_time: 3 minute read
+permalink: /validation-and-risk-gates/
+source_url: https://github.com/heyitschien/autonomous-lab-case-study/blob/main/docs/VALIDATION-AND-RISK-GATES.md
+---
+
 # Validation and Risk Gates
 
 ## Validation loop
