@@ -1,8 +1,8 @@
-# Autonomous Lab public case study — content and design brief
+# Autonomous Trading Systems Lab public case study — content and design brief
 
 ## Purpose
 
-This document is the maintenance source for the public-facing Autonomous Lab
+This document is the maintenance source for the public-facing Autonomous Trading Systems Lab
 case study. It preserves the audience strategy, claim boundaries, page
 structure, visual system, and refresh process so future edits do not drift into
 either vague portfolio language or overstated engineering claims.

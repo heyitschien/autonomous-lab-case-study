@@ -1,4 +1,4 @@
-# Autonomous Lab · AI Implementation Case Study
+# Autonomous Trading Systems Lab · AI Implementation Case Study
 
 **[Open the visual case study](https://heyitschien.github.io/autonomous-lab-case-study/)** · **[Read the full case study](https://heyitschien.github.io/autonomous-lab-case-study/full-case-study/)**
 
